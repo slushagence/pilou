@@ -1,1 +1,52 @@
 @import "tailwindcss";
+
+/* ── Palette Pilou, extraite des maquettes ───────────────────────────── */
+@theme {
+  --color-pilou-rouge: #a32018;       /* fond rouge bordeaux */
+  --color-pilou-rouge-fonce: #7e150f; /* dégradés, hover */
+  --color-pilou-creme: #f2e8d5;       /* fond papier */
+  --color-pilou-creme-fonce: #e4d7bd; /* bordures, champs */
+  --color-pilou-or: #e3a72f;          /* accents dorés */
+  --color-pilou-encre: #2b1e16;       /* texte sur fond clair */
+
+  --font-titre: "Oswald", "Arial Narrow", sans-serif;
+  --font-corps: "Source Sans 3", system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-corps);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Titres condensés en capitales, comme sur les maquettes */
+.titre {
+  font-family: var(--font-titre);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Grain papier léger sur les fonds, esprit affiche rétro */
+.fond-papier {
+  background-color: var(--color-pilou-creme);
+  background-image: radial-gradient(rgba(43, 30, 22, 0.05) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+.fond-rouge {
+  background-color: var(--color-pilou-rouge);
+  background-image:
+    radial-gradient(ellipse at top, rgba(255, 255, 255, 0.07), transparent 60%),
+    radial-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+  background-size: 100% 100%, 5px 5px;
+}
+
+/* ── La pièce qui tourne ─────────────────────────────────────────────── */
+@keyframes piece-tourne {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(1800deg); } /* 5 tours complets */
+}
+.piece-en-rotation {
+  animation: piece-tourne 2.6s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .piece-en-rotation { animation-duration: 0.6s; }
+}
