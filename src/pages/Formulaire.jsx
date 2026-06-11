@@ -19,6 +19,8 @@ export default function Formulaire() {
   const [email, setEmail] = useState('')
   const [telephone, setTelephone] = useState('')
   const [majeurEtReglement, setMajeurEtReglement] = useState(false)
+  const [newsletterBrasserie, setNewsletterBrasserie] = useState(false)
+  const [newsletterEtablissement, setNewsletterEtablissement] = useState(false)
   const [erreurs, setErreurs] = useState({})
   const zoneAutocomplete = useRef(null)
 
@@ -80,6 +82,8 @@ export default function Formulaire() {
           nom: nom.trim(),
           email: email.trim(),
           telephone: telephone.trim(),
+          newsletterBrasserie,
+          newsletterEtablissement,
         },
       },
     })
@@ -195,11 +199,37 @@ export default function Formulaire() {
           />
           <span>
             J'ai plus de 18 ans et j'accepte le{' '}
-            <span className="font-semibold underline">règlement du jeu</span>
+            <a href="/reglement" target="_blank" rel="noopener noreferrer"
+               className="font-semibold underline">
+              règlement du jeu
+            </a>
             <span className="text-pilou-rouge"> *</span>
           </span>
         </label>
         {erreurs.majeur && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.majeur}</p>}
+
+        {/* ── Consentements facultatifs (article 7 du règlement) ── */}
+        <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={newsletterBrasserie}
+            onChange={(e) => setNewsletterBrasserie(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-pilou-rouge"
+          />
+          <span>Je souhaite recevoir la newsletter de la Brasserie <em>(facultatif)</em></span>
+        </label>
+        <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={newsletterEtablissement}
+            onChange={(e) => setNewsletterEtablissement(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-pilou-rouge"
+          />
+          <span>
+            J'accepte que mes coordonnées soient transmises à l'établissement sélectionné
+            afin de recevoir ses communications commerciales <em>(facultatif)</em>
+          </span>
+        </label>
 
         <button
           type="button"

@@ -4,6 +4,7 @@ import Formulaire from './pages/Formulaire'
 import Jeu from './pages/Jeu'
 import Resultat from './pages/Resultat'
 import Lots from './pages/Lots'
+import Reglement from './pages/Reglement'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/jeu" element={<Jeu />} />
         <Route path="/resultat" element={<Resultat />} />
         <Route path="/lots" element={<Lots />} />
+        <Route path="/reglement" element={<Reglement />} />
       </Routes>
     </BrowserRouter>
   )

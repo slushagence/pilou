@@ -31,6 +31,7 @@ export default function Resultat() {
 
             <p className="mt-6 titre text-lg font-bold leading-snug">
               Présente ce résultat au bar
+              <span className="block text-pilou-or">aujourd'hui, avant la fermeture</span>
               <span className="block">pour remporter ton gain</span>
             </p>
 
@@ -42,6 +43,7 @@ export default function Resultat() {
             </p>
             <p className="mt-1 text-xs opacity-70">
               Tu vas aussi recevoir un email avec ton bon de retrait.
+              Une pièce d'identité pourra t'être demandée.
             </p>
           </>
         ) : (

@@ -26,6 +26,8 @@ export default function Jeu() {
       p_nom: joueur.nom,
       p_email: joueur.email,
       p_telephone: joueur.telephone || null,
+      p_newsletter_brasserie: joueur.newsletterBrasserie ?? false,
+      p_newsletter_etablissement: joueur.newsletterEtablissement ?? false,
     })
 
     if (error || !data) {
