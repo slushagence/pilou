@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
+import LogoPilou from '../components/LogoPilou'
 
 export default function Formulaire() {
   const navigate = useNavigate()
@@ -97,9 +98,7 @@ export default function Formulaire() {
   return (
     <main className="fond-papier min-h-screen px-6 py-10 text-pilou-encre">
       <div className="mx-auto max-w-md">
-        <p className="titre text-center text-2xl font-bold text-pilou-rouge">
-          Pilou <span className="text-sm align-top text-pilou-or">Nissa</span>
-        </p>
+        <LogoPilou variante="couleur" hauteur={56} />
 
         <h1 className="titre mt-8 text-center text-3xl font-bold leading-tight">
           Avant de jouer,

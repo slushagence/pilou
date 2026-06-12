@@ -1,24 +1,26 @@
 import { Link } from 'react-router-dom'
+import LogoPilou from '../components/LogoPilou'
 import PiecePilou from '../components/PiecePilou'
+import heroBiere from '../assets/pilou/la-pilou-biere-pression.webp'
 
 export default function Landing() {
   return (
     <main className="fond-papier min-h-screen flex flex-col items-center px-6 py-10 text-pilou-encre">
-      {/* Logo (placeholder texte en attendant le PNG) */}
-      <p className="titre text-3xl font-bold text-pilou-rouge">
-        Pilou <span className="text-base align-top text-pilou-or">Nissa</span>
-      </p>
+      <LogoPilou variante="couleur" hauteur={64} />
 
-      <div className="my-8">
-        <PiecePilou taille={120} />
+      <div className="my-6">
+        <PiecePilou taille={110} />
       </div>
 
-      <h1 className="titre text-center text-5xl font-bold leading-tight">
-        La <span className="text-pilou-rouge">Pilou</span>
-        <span className="block text-2xl mt-1">Bière pression</span>
-      </h1>
+      {/* Le visuel-titre officiel */}
+      <img
+        src={heroBiere}
+        alt="La Pilou — bière pression"
+        className="w-full max-w-xs"
+        draggable="false"
+      />
 
-      <p className="titre mt-6 inline-block bg-pilou-rouge px-4 py-2 text-lg font-bold text-pilou-creme">
+      <p className="titre mt-6 inline-block -rotate-1 bg-pilou-rouge px-4 py-2 text-lg font-bold text-pilou-creme shadow">
         Gagne ton Pilou... et plus !
       </p>
 
@@ -39,14 +41,14 @@ export default function Landing() {
 
       <Link
         to="/jouer"
-        className="titre mt-12 block w-full max-w-md rounded bg-pilou-rouge py-4 text-center text-xl
+        className="titre mt-10 block w-full max-w-md rounded bg-pilou-rouge py-4 text-center text-xl
                    font-bold text-pilou-creme shadow-lg transition hover:bg-pilou-rouge-fonce
                    focus:outline-2 focus:outline-offset-2 focus:outline-pilou-rouge"
       >
         Participer au jeu
       </Link>
 
-      <p className="mt-4 text-xs opacity-60">
+      <p className="mt-4 text-xs opacity-60 text-center">
         Jeu réservé aux personnes majeures. L'abus d'alcool est dangereux pour la santé.
       </p>
     </main>

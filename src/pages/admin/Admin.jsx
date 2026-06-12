@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import { supabase } from '../../supabase'
 import Login from './Login'
 import Dashboard from './Dashboard'
+import FicheRestaurant from './FicheRestaurant'
+import Joueurs from './Joueurs'
 
-// Porte d'entrée du back-office : affiche le login tant qu'aucune session
-// Supabase Auth n'est active, puis le tableau de bord.
+// Porte d'entrée du back-office : login si aucune session, sinon les pages admin.
 export default function Admin() {
-  const [session, setSession] = useState(undefined) // undefined = en cours de vérification
+  const [session, setSession] = useState(undefined)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: ecouteur } = supabase.auth.onAuthStateChange((_evenement, s) => {
-      setSession(s)
-    })
+    const { data: ecouteur } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => ecouteur.subscription.unsubscribe()
   }, [])
 
@@ -24,5 +24,13 @@ export default function Admin() {
     )
   }
 
-  return session ? <Dashboard /> : <Login />
+  if (!session) return <Login />
+
+  return (
+    <Routes>
+      <Route index element={<Dashboard />} />
+      <Route path="restaurant/:id" element={<FicheRestaurant />} />
+      <Route path="joueurs" element={<Joueurs />} />
+    </Routes>
+  )
 }

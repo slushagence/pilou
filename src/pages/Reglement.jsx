@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
+import LogoPilou from '../components/LogoPilou'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // À COMPLÉTER avant la mise en production (puis faire valider par l'avocat) :
@@ -50,9 +51,7 @@ export default function Reglement() {
   return (
     <main className="fond-papier min-h-screen px-6 py-10 text-pilou-encre">
       <div className="mx-auto max-w-2xl text-[15px] leading-relaxed">
-        <p className="titre text-center text-2xl font-bold text-pilou-rouge">
-          Pilou <span className="text-sm align-top text-pilou-or">Nissa</span>
-        </p>
+        <LogoPilou variante="couleur" hauteur={56} />
 
         <h1 className="titre mt-8 text-center text-3xl font-bold leading-tight">
           Règlement du jeu

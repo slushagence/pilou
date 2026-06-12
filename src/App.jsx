@@ -17,7 +17,7 @@ export default function App() {
         <Route path="/resultat" element={<Resultat />} />
         <Route path="/lots" element={<Lots />} />
         <Route path="/reglement" element={<Reglement />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/*" element={<Admin />} />
       </Routes>
     </BrowserRouter>
   )
