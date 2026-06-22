@@ -51,6 +51,9 @@ export default function Dashboard() {
   const [importMessage, setImportMessage] = useState('')
   const inputFichier = useRef(null)
 
+  // Recherche établissements
+  const [rechercheLieux, setRechercheLieux] = useState('')
+
   function telechargerTemplate() {
     const wb = XLSX.utils.book_new()
     const headers = ['nom', 'ville', 'email_contact', 'telephone', 'contact', 'taux_de_gain_%', 'code_acces']
@@ -293,6 +296,15 @@ export default function Dashboard() {
           </p>
         )}
 
+        {/* Recherche établissements */}
+        <input
+          type="search"
+          placeholder="🔍 Rechercher un établissement (nom, ville...)"
+          value={rechercheLieux}
+          onChange={(e) => setRechercheLieux(e.target.value)}
+          className="mt-3 w-full rounded border border-pilou-creme-fonce bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-pilou-rouge"
+        />
+
         {formOuvert && (
           <section className="mt-3 rounded bg-white/70 p-4 shadow-sm">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -321,7 +333,13 @@ export default function Dashboard() {
         )}
 
         <ul className="mt-3 space-y-3">
-          {lieux.map((lieu) => {
+          {lieux
+            .filter((lieu) => {
+              const q = rechercheLieux.trim().toLowerCase()
+              if (!q) return true
+              return `${lieu.nom} ${lieu.ville}`.toLowerCase().includes(q)
+            })
+            .map((lieu) => {
             const lotsduLieu = lots.filter((l) => l.lieu_id === lieu.id)
             const lotsActifs = lotsduLieu.filter((l) => l.actif && l.stock_restant > 0).length
             const enAlerte = lotsduLieu.some((l) => l.actif && l.stock_restant <= l.seuil_alerte)
