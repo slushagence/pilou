@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase'
+import * as XLSX from 'xlsx'
 
 function genererSlug(nom, ville) {
   return `${nom} ${ville}`
@@ -44,6 +45,82 @@ export default function Dashboard() {
   const [nvTaux, setNvTaux] = useState('25')
   const [nvEmail, setNvEmail] = useState('')
   const [erreurForm, setErreurForm] = useState(null)
+
+  // Import XLS
+  const [importEtat, setImportEtat] = useState(null) // null | 'en_cours' | 'succes' | 'erreur'
+  const [importMessage, setImportMessage] = useState('')
+  const inputFichier = useRef(null)
+
+  function telechargerTemplate() {
+    const wb = XLSX.utils.book_new()
+    const headers = ['nom', 'ville', 'email_contact', 'telephone', 'contact', 'taux_de_gain_%', 'code_acces']
+    const exemple = ['Le Bar du Soleil', 'Nice', 'contact@bar.fr', '06 12 34 56 78', 'Jean Dupont', 25, 'pilou2026']
+    const ws = XLSX.utils.aoa_to_sheet([headers, exemple])
+    ws['!cols'] = [30, 20, 30, 18, 24, 18, 22].map((w) => ({ wch: w }))
+    XLSX.utils.book_append_sheet(wb, ws, 'Établissements')
+    XLSX.writeFile(wb, 'pilou-template-etablissements.xlsx')
+  }
+
+  async function importerXLS(e) {
+    const fichier = e.target.files?.[0]
+    if (!fichier) return
+    setImportEtat('en_cours')
+    setImportMessage('Lecture du fichier...')
+
+    try {
+      const buffer = await fichier.arrayBuffer()
+      const wb = XLSX.read(buffer)
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const lignes = XLSX.utils.sheet_to_json(ws, { defval: '' })
+
+      let crees = 0, mis_a_jour = 0, erreurs = []
+
+      for (const ligne of lignes) {
+        const nom = String(ligne['nom'] ?? '').trim()
+        const ville = String(ligne['ville'] ?? '').trim()
+        if (!nom || !ville) continue
+
+        const taux = parseFloat(String(ligne['taux_de_gain_%'] ?? 25).replace(',', '.'))
+        const donnees = {
+          nom,
+          ville,
+          slug: genererSlug(nom, ville),
+          email_contact: String(ligne['email_contact'] ?? '').trim() || null,
+          telephone: String(ligne['telephone'] ?? '').trim() || null,
+          contact: String(ligne['contact'] ?? '').trim() || null,
+          taux_de_gain: (isNaN(taux) ? 25 : taux) / 100,
+          code_acces: String(ligne['code_acces'] ?? '').trim() || null,
+        }
+
+        // Vérifie si le lieu existe déjà (par nom + ville)
+        const { data: existant } = await supabase
+          .from('lieux').select('id').eq('nom', nom).eq('ville', ville).single()
+
+        if (existant) {
+          const { error } = await supabase.from('lieux').update(donnees).eq('id', existant.id)
+          if (error) erreurs.push(`${nom} (${ville}) : ${error.message}`)
+          else mis_a_jour++
+        } else {
+          const { error } = await supabase.from('lieux').insert(donnees)
+          if (error) erreurs.push(`${nom} (${ville}) : ${error.message}`)
+          else crees++
+        }
+      }
+
+      if (erreurs.length > 0) {
+        setImportEtat('erreur')
+        setImportMessage(`${crees} créés, ${mis_a_jour} mis à jour. Erreurs : ${erreurs.join(' | ')}`)
+      } else {
+        setImportEtat('succes')
+        setImportMessage(`✅ ${crees} établissement(s) créé(s), ${mis_a_jour} mis à jour.`)
+        chargerTout()
+      }
+    } catch (err) {
+      setImportEtat('erreur')
+      setImportMessage(`Erreur de lecture : ${err.message}`)
+    }
+    e.target.value = ''
+  }
 
   async function chargerTout() {
     setMessageErreur(null)
@@ -187,13 +264,34 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <div className="mt-10 flex items-center justify-between">
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-2">
           <h2 className="titre text-lg font-bold text-pilou-rouge">Établissements</h2>
-          <button type="button" onClick={() => setFormOuvert(!formOuvert)}
-            className="titre rounded bg-pilou-rouge px-3 py-1.5 text-sm font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
-            {formOuvert ? 'Annuler' : '+ Ajouter'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={telechargerTemplate}
+              className="rounded border border-pilou-creme-fonce bg-white/70 px-3 py-1.5 text-sm hover:bg-white">
+              📥 Template XLS
+            </button>
+            <button type="button" onClick={() => inputFichier.current?.click()}
+              className="rounded border border-pilou-creme-fonce bg-white/70 px-3 py-1.5 text-sm hover:bg-white">
+              📤 Importer XLS
+            </button>
+            <input ref={inputFichier} type="file" accept=".xlsx,.xls" className="hidden" onChange={importerXLS} />
+            <button type="button" onClick={() => setFormOuvert(!formOuvert)}
+              className="titre rounded bg-pilou-rouge px-3 py-1.5 text-sm font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
+              {formOuvert ? 'Annuler' : '+ Ajouter'}
+            </button>
+          </div>
         </div>
+
+        {importEtat && (
+          <p className={`mt-2 rounded px-3 py-2 text-sm ${
+            importEtat === 'succes' ? 'bg-green-100 text-green-800'
+            : importEtat === 'erreur' ? 'bg-red-100 text-red-800'
+            : 'bg-pilou-creme text-pilou-encre opacity-70'
+          }`}>
+            {importEtat === 'en_cours' ? '⏳ ' : ''}{importMessage}
+          </p>
+        )}
 
         {formOuvert && (
           <section className="mt-3 rounded bg-white/70 p-4 shadow-sm">
