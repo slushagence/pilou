@@ -29,7 +29,7 @@ export default function Admin() {
   return (
     <Routes>
       <Route index element={<Dashboard />} />
-      <Route path="restaurant/:id" element={<FicheRestaurant />} />
+      <Route path="lieu/:id" element={<FicheRestaurant />} />
       <Route path="joueurs" element={<Joueurs />} />
     </Routes>
   )

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import LogoPilou from '../components/LogoPilou'
 import PiecePilou from '../components/PiecePilou'
 import heroBiere from '../assets/pilou/la-pilou-biere-pression.webp'
+import logoBDC from '../assets/pilou/logo-bdc.png'
 
 export default function Landing() {
   return (
@@ -24,20 +25,13 @@ export default function Landing() {
         Gagne ton Pilou... et plus !
       </p>
 
-      <section className="mt-10 grid w-full max-w-md grid-cols-3 gap-4 text-center text-xs">
-        <div>
-          <p className="titre font-bold">Bière populaire accessible à tous</p>
-          <p className="mt-1 opacity-75">Blonde, légère et conviviale.</p>
-        </div>
-        <div>
-          <p className="titre font-bold">Un jeu 100% niçois légendaire</p>
-          <p className="mt-1 opacity-75">Inspiré du célèbre jeu du Pilou.</p>
-        </div>
-        <div>
-          <p className="titre font-bold">Disponible uniquement en fût</p>
-          <p className="mt-1 opacity-75">La bière idéale pour les bars.</p>
-        </div>
-      </section>
+      {/* Logo BDC */}
+      <img
+        src={logoBDC}
+        alt="Brasserie du Comté"
+        className="mt-8 w-32 object-contain opacity-90"
+        draggable="false"
+      />
 
       <Link
         to="/jouer"
@@ -51,6 +45,15 @@ export default function Landing() {
       <p className="mt-4 text-xs opacity-60 text-center">
         Jeu réservé aux personnes majeures. L'abus d'alcool est dangereux pour la santé.
       </p>
+
+      <a
+        href="https://www.lapilou.fr"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 text-xs underline opacity-50 hover:opacity-80"
+      >
+        www.lapilou.fr
+      </a>
     </main>
   )
 }

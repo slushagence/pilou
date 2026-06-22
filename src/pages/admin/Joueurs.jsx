@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase'
+import * as XLSX from 'xlsx'
 
 // Joueurs & gagnants : liste filtrable des parties, marquage "lot retiré",
-// exports CSV (parties affichées / contacts newsletter opt-in dédoublonnés).
+// exports CSV et XLS (parties affichées / contacts newsletter opt-in dédoublonnés).
 
 const PAR_PAGE = 50
 
 function csvTelecharger(nomFichier, lignes) {
-  // Format Excel FR : BOM UTF-8 + séparateur point-virgule
   const contenu = '\uFEFF' + lignes
     .map((l) => l.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(';'))
     .join('\r\n')
@@ -20,8 +20,15 @@ function csvTelecharger(nomFichier, lignes) {
   URL.revokeObjectURL(lien.href)
 }
 
+function xlsTelecharger(nomFichier, lignes) {
+  const ws = XLSX.utils.aoa_to_sheet(lignes)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Données')
+  XLSX.writeFile(wb, nomFichier)
+}
+
 export default function Joueurs() {
-  const [restaurants, setRestaurants] = useState([])
+  const [lieux, setLieux] = useState([])
   const [parties, setParties] = useState([])
   const [chargement, setChargement] = useState(true)
   const [messageErreur, setMessageErreur] = useState(null)
@@ -42,31 +49,31 @@ export default function Joueurs() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(2000)
-    if (filtreResto !== 'tous') requete = requete.eq('restaurant_id', filtreResto)
+    if (lieux.filter !== 'tous') requete = requete.eq('lieu_id', filtreResto)
     if (filtreGagnants) requete = requete.eq('resultat', 'gagne')
     if (filtreNewsBrasserie) requete = requete.eq('newsletter_brasserie', true)
     if (filtreNewsEtab) requete = requete.eq('newsletter_etablissement', true)
 
     const [r1, r2] = await Promise.all([
-      supabase.from('restaurants').select('id, nom, ville').order('nom'),
+      supabase.from('lieux').select('id, nom, ville').order('nom'),
       requete,
     ])
     if (r2.error) {
       setMessageErreur('Impossible de charger les parties.')
     } else {
-      setRestaurants(r1.data ?? [])
+      setLieux(r1.data ?? [])
       setParties(r2.data ?? [])
       setPage(1)
     }
     setChargement(false)
   }
 
-  useEffect(() => { charger() }, [filtreResto, filtreGagnants, filtreNewsBrasserie, filtreNewsEtab])
+  useEffect(() => { charger() }, [lieux.filter, filtreGagnants, filtreNewsBrasserie, filtreNewsEtab])
 
-  const nomResto = useMemo(() => {
-    const m = new Map(restaurants.map((r) => [r.id, `${r.nom} — ${r.ville}`]))
+  const nomLieu = useMemo(() => {
+    const m = new Map(lieux.map((l) => [l.id, `${l.nom} — ${l.ville}`]))
     return (id) => m.get(id) ?? '?'
-  }, [restaurants])
+  }, [lieux])
 
   // Recherche locale (email, nom, prénom, code)
   const partiesFiltrees = useMemo(() => {
@@ -81,7 +88,7 @@ export default function Joueurs() {
   const pageMax = Math.max(1, Math.ceil(partiesFiltrees.length / PAR_PAGE))
   const pageAffichee = partiesFiltrees.slice((page - 1) * PAR_PAGE, page * PAR_PAGE)
 
-  function exporterParties() {
+  function buildLignesParties() {
     const lignes = [[
       'Date', 'Heure', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Établissement',
       'Résultat', 'Lot', 'Code retrait', 'Newsletter Brasserie', 'Newsletter Établissement',
@@ -92,27 +99,38 @@ export default function Joueurs() {
         d.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' }),
         d.toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' }),
         p.prenom, p.nom, p.email, p.telephone ?? '',
-        nomResto(p.restaurant_id),
+        nomLieu(p.lieu_id),
         p.resultat === 'gagne' ? 'Gagné' : 'Perdu',
         p.lot_nom ?? '', p.code_retrait ?? '',
         p.newsletter_brasserie ? 'Oui' : 'Non',
         p.newsletter_etablissement ? 'Oui' : 'Non',
       ])
     }
-    csvTelecharger('pilou-parties.csv', lignes)
+    return lignes
   }
 
-  function exporterNewsletter() {
-    // Uniquement les opt-ins Brasserie, dédoublonnés par email (consentement le plus récent)
+  function buildLignesNewsletter() {
     const parEmail = new Map()
-    for (const p of [...parties].reverse()) { // du plus ancien au plus récent
+    for (const p of [...parties].reverse()) {
       if (p.newsletter_brasserie) parEmail.set(p.email, p)
     }
     const lignes = [['Email', 'Prénom', 'Nom', 'Téléphone']]
     for (const p of parEmail.values()) {
       lignes.push([p.email, p.prenom, p.nom, p.telephone ?? ''])
     }
-    csvTelecharger('pilou-contacts-newsletter-brasserie.csv', lignes)
+    return lignes
+  }
+
+  function exporterParties(format) {
+    const lignes = buildLignesParties()
+    if (format === 'xls') xlsTelecharger('pilou-parties.xlsx', lignes)
+    else csvTelecharger('pilou-parties.csv', lignes)
+  }
+
+  function exporterNewsletter(format) {
+    const lignes = buildLignesNewsletter()
+    if (format === 'xls') xlsTelecharger('pilou-contacts-newsletter-brasserie.xlsx', lignes)
+    else csvTelecharger('pilou-contacts-newsletter-brasserie.csv', lignes)
   }
 
   const STYLE_FILTRE = 'flex items-center gap-2 text-sm'
@@ -133,11 +151,11 @@ export default function Joueurs() {
         <section className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 rounded bg-white/70 p-4 shadow-sm">
           <label className={STYLE_FILTRE}>
             Établissement
-            <select value={filtreResto} onChange={(e) => setFiltreResto(e.target.value)}
+            <select value={lieux.filter} onChange={(e) => setFiltreResto(e.target.value)}
               className="rounded border border-pilou-creme-fonce bg-white px-2 py-1.5">
               <option value="tous">Tous</option>
-              {restaurants.map((r) => (
-                <option key={r.id} value={r.id}>{r.nom} — {r.ville}</option>
+              {lieux.map((r) => (
+                <option key={l.id} value={l.id}>{l.nom} — {l.ville}</option>
               ))}
             </select>
           </label>
@@ -166,15 +184,27 @@ export default function Joueurs() {
           <p className="text-sm opacity-70">
             {chargement ? 'Chargement...' : `${partiesFiltrees.length.toLocaleString('fr-FR')} partie${partiesFiltrees.length > 1 ? 's' : ''}`}
           </p>
-          <div className="flex gap-2">
-            <button type="button" onClick={exporterParties}
-              className="rounded border border-pilou-creme-fonce bg-white/70 px-3 py-1.5 text-sm hover:bg-white">
-              Exporter les parties (CSV)
-            </button>
-            <button type="button" onClick={exporterNewsletter}
-              className="titre rounded bg-pilou-rouge px-3 py-1.5 text-sm font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
-              Exporter contacts newsletter (CSV)
-            </button>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex rounded border border-pilou-creme-fonce overflow-hidden text-sm">
+              <button type="button" onClick={() => exporterParties('csv')}
+                className="bg-white/70 px-3 py-1.5 hover:bg-white">
+                Parties CSV
+              </button>
+              <button type="button" onClick={() => exporterParties('xls')}
+                className="border-l border-pilou-creme-fonce bg-white/70 px-3 py-1.5 hover:bg-white">
+                XLS
+              </button>
+            </div>
+            <div className="flex rounded overflow-hidden text-sm">
+              <button type="button" onClick={() => exporterNewsletter('csv')}
+                className="titre bg-pilou-rouge px-3 py-1.5 font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
+                Newsletter CSV
+              </button>
+              <button type="button" onClick={() => exporterNewsletter('xls')}
+                className="titre border-l border-pilou-creme bg-pilou-rouge px-3 py-1.5 font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
+                XLS
+              </button>
+            </div>
           </div>
         </section>
         <p className="mt-1 text-xs opacity-60">
@@ -207,7 +237,7 @@ export default function Joueurs() {
                     <p className="font-semibold">{p.prenom} {p.nom}</p>
                     <p className="text-xs opacity-60">{p.email}{p.telephone ? ` · ${p.telephone}` : ''}</p>
                   </td>
-                  <td className="p-2">{nomResto(p.restaurant_id)}</td>
+                  <td className="p-2">{nomLieu(p.lieu_id)}</td>
                   <td className="p-2">
                     {p.resultat === 'gagne' ? (
                       <>

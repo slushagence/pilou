@@ -27,12 +27,12 @@ function Titre({ children }) {
 }
 
 export default function Reglement() {
-  const [restaurants, setRestaurants] = useState([])
+  const [lieux, setLieux] = useState([])
   const [lots, setLots] = useState([])
 
   useEffect(() => {
-    supabase.from('v_restaurants').select('nom, ville').order('nom')
-      .then(({ data }) => setRestaurants(data ?? []))
+    supabase.from('v_lieux').select('nom, ville').order('nom')
+      .then(({ data }) => setLieux(data ?? []))
     supabase.from('v_lots').select('nom, description, valeur_euros')
       .then(({ data }) => {
         // Dédoublonne les lots identiques proposés par plusieurs établissements
@@ -145,9 +145,9 @@ export default function Reglement() {
         <p className="mt-2">
           <strong>Établissements participants :</strong>
         </p>
-        {restaurants.length > 0 ? (
+        {lieux.length > 0 ? (
           <ul className="mt-1 list-disc pl-6">
-            {restaurants.map((r, i) => (
+            {lieux.map((r, i) => (
               <li key={i}>{r.nom} — {r.ville}</li>
             ))}
           </ul>

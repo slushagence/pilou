@@ -9,11 +9,11 @@ export default function Jeu() {
   const { state } = useLocation()
   const navigate = useNavigate()
   const [enRotation, setEnRotation] = useState(false)
-  const [faceFinale, setFaceFinale] = useState(null) // 'gagne' | 'perdu' à l'atterrissage
+  const [faceFinale, setFaceFinale] = useState(null)
   const [erreur, setErreur] = useState(null)
 
-  if (!state?.restaurant || !state?.joueur) return <Navigate to="/jouer" replace />
-  const { restaurant, joueur } = state
+  if (!state?.lieu || !state?.joueur) return <Navigate to="/jouer" replace />
+  const { lieu, joueur } = state
 
   async function tournerLaPiece() {
     if (enRotation || faceFinale) return
@@ -22,7 +22,7 @@ export default function Jeu() {
 
     const debut = Date.now()
     const { data, error } = await supabase.rpc('jouer', {
-      p_restaurant_id: restaurant.id,
+      p_lieu_id: lieu.id,
       p_prenom: joueur.prenom,
       p_nom: joueur.nom,
       p_email: joueur.email,
@@ -41,20 +41,19 @@ export default function Jeu() {
       if (data.erreur === 'deja_joue_aujourdhui') {
         setErreur('Tu as déjà joué aujourd\u2019hui ! Reviens tenter ta chance demain.')
       } else if (data.erreur === 'etablissement_inconnu') {
-        setErreur('Cet établissement ne participe plus au jeu.')
+        setErreur('Ce lieu ne participe plus au jeu.')
       } else {
         setErreur('Le formulaire semble incomplet. Reviens en arrière et vérifie tes infos.')
       }
       return
     }
 
-    // La pièce finit ses tours (2,6 s), atterrit sur sa face (0,9 s), puis résultat
     const resteRotation = Math.max(0, 2600 - (Date.now() - debut))
     setTimeout(() => {
       setEnRotation(false)
-      setFaceFinale(data.resultat) // 'gagne' ou 'perdu'
+      setFaceFinale(data.resultat)
       setTimeout(() => {
-        navigate('/resultat', { state: { reponse: data, restaurant } })
+        navigate('/resultat', { state: { reponse: data, lieu } })
       }, 1100)
     }, resteRotation)
   }
@@ -66,7 +65,7 @@ export default function Jeu() {
 
         <h1 className="titre mt-6 text-4xl font-bold">À toi de jouer !</h1>
         <p className="titre mt-1 text-lg text-pilou-or">Tente ta chance</p>
-        <p className="mt-2 text-sm opacity-80">{restaurant.nom} — {restaurant.ville}</p>
+        <p className="mt-2 text-sm opacity-80">{lieu.nom} — {lieu.ville}</p>
 
         <div className={`my-8 ${faceFinale ? 'piece-atterrissage' : ''}`}>
           <PiecePilou face={faceFinale ?? 'piece'} enRotation={enRotation} />
@@ -87,8 +86,8 @@ export default function Jeu() {
           <p className="mt-4 rounded bg-pilou-rouge-fonce px-4 py-3 text-sm">{erreur}</p>
         )}
 
-        <Link to="/lots" state={{ restaurant }} className="mt-6 text-sm underline opacity-80 hover:opacity-100">
-          Voir la liste des lots
+        <Link to="/lots" state={{ lieu }} className="mt-6 text-sm underline opacity-80 hover:opacity-100">
+          Voir les lots disponibles
         </Link>
 
         <img src={stade} alt="" draggable="false"

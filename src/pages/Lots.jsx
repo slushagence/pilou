@@ -8,19 +8,19 @@ export default function Lots() {
   const navigate = useNavigate()
   const [lots, setLots] = useState(null)
 
-  const restaurant = state?.restaurant
+  const lieu = state?.lieu
 
   useEffect(() => {
-    if (!restaurant) return
+    if (!lieu) return
     supabase
       .from('v_lots')
       .select('id, nom, description, valeur_euros')
-      .eq('restaurant_id', restaurant.id)
+      .eq('lieu_id', lieu.id)
       .order('valeur_euros', { ascending: false })
       .then(({ data }) => setLots(data ?? []))
-  }, [restaurant])
+  }, [lieu])
 
-  if (!restaurant) return <Navigate to="/jouer" replace />
+  if (!lieu) return <Navigate to="/jouer" replace />
 
   return (
     <main className="fond-papier min-h-screen px-6 py-10 text-pilou-encre">
@@ -31,14 +31,14 @@ export default function Lots() {
           Les lots à gagner
         </h1>
         <p className="mt-2 text-center text-sm opacity-75">
-          {restaurant.nom} — {restaurant.ville}
+          {lieu.nom} — {lieu.ville}
         </p>
 
         {lots === null && <p className="mt-8 text-center text-sm opacity-60">Chargement...</p>}
 
         {lots !== null && lots.length === 0 && (
           <p className="mt-8 text-center text-sm opacity-75">
-            Tous les lots de cet établissement ont été remportés... pour le moment !
+            Tous les lots de ce lieu ont été remportés... pour le moment !
           </p>
         )}
 

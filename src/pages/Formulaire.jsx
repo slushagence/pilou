@@ -6,14 +6,12 @@ import LogoPilou from '../components/LogoPilou'
 export default function Formulaire() {
   const navigate = useNavigate()
 
-  // Liste des établissements (chargée une fois depuis la vue publique)
-  const [restaurants, setRestaurants] = useState([])
+  const [lieux, setLieux] = useState([])
   const [chargement, setChargement] = useState(true)
   const [erreurChargement, setErreurChargement] = useState(false)
 
-  // Saisie
   const [recherche, setRecherche] = useState('')
-  const [restaurant, setRestaurant] = useState(null) // l'établissement choisi
+  const [lieu, setLieu] = useState(null)
   const [listeOuverte, setListeOuverte] = useState(false)
   const [prenom, setPrenom] = useState('')
   const [nom, setNom] = useState('')
@@ -27,17 +25,16 @@ export default function Formulaire() {
 
   useEffect(() => {
     supabase
-      .from('v_restaurants')
+      .from('v_lieux')
       .select('id, nom, ville')
       .order('nom')
       .then(({ data, error }) => {
         if (error) setErreurChargement(true)
-        else setRestaurants(data ?? [])
+        else setLieux(data ?? [])
         setChargement(false)
       })
   }, [])
 
-  // Ferme la liste si on clique ailleurs
   useEffect(() => {
     const fermer = (e) => {
       if (zoneAutocomplete.current && !zoneAutocomplete.current.contains(e.target)) {
@@ -50,21 +47,21 @@ export default function Formulaire() {
 
   const resultats = useMemo(() => {
     const q = recherche.trim().toLowerCase()
-    if (!q) return restaurants.slice(0, 6)
-    return restaurants
-      .filter((r) => `${r.nom} ${r.ville}`.toLowerCase().includes(q))
+    if (!q) return lieux.slice(0, 6)
+    return lieux
+      .filter((l) => `${l.nom} ${l.ville}`.toLowerCase().includes(q))
       .slice(0, 6)
-  }, [recherche, restaurants])
+  }, [recherche, lieux])
 
-  function choisirRestaurant(r) {
-    setRestaurant(r)
-    setRecherche(`${r.nom} — ${r.ville}`)
+  function choisirLieu(l) {
+    setLieu(l)
+    setRecherche(`${l.nom} — ${l.ville}`)
     setListeOuverte(false)
   }
 
   function valider() {
     const e = {}
-    if (!restaurant) e.restaurant = 'Choisis ton établissement dans la liste.'
+    if (!lieu) e.lieu = 'Choisis ton lieu dans la liste.'
     if (!prenom.trim()) e.prenom = 'Ton prénom est requis.'
     if (!nom.trim()) e.nom = 'Ton nom est requis.'
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) e.email = 'Email invalide.'
@@ -77,7 +74,7 @@ export default function Formulaire() {
     if (!valider()) return
     navigate('/jeu', {
       state: {
-        restaurant,
+        lieu,
         joueur: {
           prenom: prenom.trim(),
           nom: nom.trim(),
@@ -108,20 +105,20 @@ export default function Formulaire() {
           Remplis ce formulaire pour tenter ta chance et découvrir ton gain !
         </p>
 
-        {/* ── Choix de l'établissement ── */}
+        {/* ── Choix du lieu ── */}
         <div className="relative mt-8" ref={zoneAutocomplete}>
-          <label htmlFor="etablissement" className="titre text-sm font-bold">
-            Choisis ton établissement <span className="text-pilou-rouge">*</span>
+          <label htmlFor="lieu" className="titre text-sm font-bold">
+            Choisis ton lieu <span className="text-pilou-rouge">*</span>
           </label>
           <input
-            id="etablissement"
+            id="lieu"
             type="text"
             className={`${styleChamp} mt-1`}
             placeholder="Commence à taper le nom..."
             value={recherche}
             onChange={(e) => {
               setRecherche(e.target.value)
-              setRestaurant(null)
+              setLieu(null)
               setListeOuverte(true)
             }}
             onFocus={() => setListeOuverte(true)}
@@ -129,29 +126,29 @@ export default function Formulaire() {
           />
           {listeOuverte && !chargement && (
             <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded border border-pilou-creme-fonce bg-white shadow-lg">
-              {resultats.map((r) => (
-                <li key={r.id}>
+              {resultats.map((l) => (
+                <li key={l.id}>
                   <button
                     type="button"
-                    onClick={() => choisirRestaurant(r)}
+                    onClick={() => choisirLieu(l)}
                     className="block w-full px-3 py-2.5 text-left text-sm hover:bg-pilou-creme"
                   >
-                    {r.nom} — {r.ville}
+                    {l.nom} — {l.ville}
                   </button>
                 </li>
               ))}
               {resultats.length === 0 && (
-                <li className="px-3 py-2.5 text-sm opacity-60">Aucun établissement trouvé.</li>
+                <li className="px-3 py-2.5 text-sm opacity-60">Aucun lieu trouvé.</li>
               )}
             </ul>
           )}
-          {chargement && <p className="mt-1 text-xs opacity-60">Chargement des établissements...</p>}
+          {chargement && <p className="mt-1 text-xs opacity-60">Chargement des lieux...</p>}
           {erreurChargement && (
             <p className="mt-1 text-xs text-pilou-rouge">
               Impossible de charger la liste. Vérifie ta connexion et recharge la page.
             </p>
           )}
-          {erreurs.restaurant && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.restaurant}</p>}
+          {erreurs.lieu && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.lieu}</p>}
         </div>
 
         {/* ── Identité ── */}
@@ -207,7 +204,7 @@ export default function Formulaire() {
         </label>
         {erreurs.majeur && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.majeur}</p>}
 
-        {/* ── Consentements facultatifs (article 7 du règlement) ── */}
+        {/* ── Consentements ── */}
         <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm">
           <input
             type="checkbox"
@@ -215,7 +212,7 @@ export default function Formulaire() {
             onChange={(e) => setNewsletterBrasserie(e.target.checked)}
             className="mt-0.5 h-4 w-4 accent-pilou-rouge"
           />
-          <span>Je souhaite recevoir la newsletter de la Brasserie <em>(facultatif)</em></span>
+          <span>Je souhaite recevoir la newsletter de la Brasserie</span>
         </label>
         <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm">
           <input
@@ -225,8 +222,8 @@ export default function Formulaire() {
             className="mt-0.5 h-4 w-4 accent-pilou-rouge"
           />
           <span>
-            J'accepte que mes coordonnées soient transmises à l'établissement sélectionné
-            afin de recevoir ses communications commerciales <em>(facultatif)</em>
+            J'accepte que mes coordonnées soient transmises à l'établissement / événement sélectionné
+            afin de recevoir ses communications commerciales
           </span>
         </label>
 
@@ -239,6 +236,15 @@ export default function Formulaire() {
         >
           C'est parti !
         </button>
+
+        <a
+          href="https://www.lapilou.fr"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 block text-center text-xs underline opacity-50 hover:opacity-80"
+        >
+          www.lapilou.fr
+        </a>
       </div>
     </main>
   )

@@ -6,7 +6,7 @@ import enfant from '../assets/pilou/pilou-enfant.webp'
 export default function Resultat() {
   const { state } = useLocation()
   if (!state?.reponse) return <Navigate to="/" replace />
-  const { reponse } = state
+  const { reponse, lieu } = state
   const gagne = reponse.resultat === 'gagne'
 
   return (
@@ -69,7 +69,7 @@ export default function Resultat() {
           <p className="titre font-bold opacity-90">
             {reponse.prenom} {reponse.nom}
           </p>
-          <p className="opacity-80">{reponse.restaurant}</p>
+          <p className="opacity-80">{lieu?.nom} — {lieu?.ville}</p>
           <p className="opacity-80">{reponse.date_heure}</p>
         </div>
 
@@ -78,6 +78,15 @@ export default function Resultat() {
         <Link to="/" className="mt-4 text-sm underline opacity-80 hover:opacity-100">
           Retour à l'accueil
         </Link>
+
+        <a
+          href="https://www.lapilou.fr"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 text-xs underline opacity-50 hover:opacity-80"
+        >
+          www.lapilou.fr
+        </a>
       </div>
     </main>
   )

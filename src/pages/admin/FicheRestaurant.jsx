@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../../supabase'
-
-// Fiche d'un établissement : édition de ses réglages (taux de gain, email
-// d'alerte, actif) et gestion complète de ses lots, avec affichage des
-// probabilités réelles calculées ("1 chance sur N") — les chiffres du règlement.
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const CHAMP = 'rounded border border-pilou-creme-fonce bg-white px-3 py-2 text-sm'
 
@@ -13,6 +11,7 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
   const [valeurs, setValeurs] = useState({})
 
   function ouvrirEdition() {
+    const pctAffiche = totalPoids > 0 ? Math.round((lot.poids / totalPoids) * 100) : lot.poids
     setValeurs({
       nom: lot.nom,
       description: lot.description ?? '',
@@ -20,12 +19,14 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
       stock_restant: String(lot.stock_restant),
       stock_initial: String(lot.stock_initial),
       seuil_alerte: String(lot.seuil_alerte),
-      poids: String(lot.poids),
+      pct: String(pctAffiche),
     })
     setEdition(true)
   }
 
   async function enregistrer() {
+    const pct = parseInt(valeurs.pct, 10)
+    if (isNaN(pct) || pct < 1 || pct > 100) return
     const maj = {
       nom: valeurs.nom.trim(),
       description: valeurs.description.trim() || null,
@@ -33,18 +34,17 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
       stock_restant: parseInt(valeurs.stock_restant, 10),
       stock_initial: parseInt(valeurs.stock_initial, 10),
       seuil_alerte: parseInt(valeurs.seuil_alerte, 10),
-      poids: parseInt(valeurs.poids, 10),
+      poids: pct,
     }
     if (!maj.nom || Object.values(maj).some((v) => typeof v === 'number' && (Number.isNaN(v) || v < 0))) return
-    if (maj.poids < 1) maj.poids = 1
     await onMaj(lot.id, maj)
     setEdition(false)
   }
 
-  // Probabilité réelle de ce lot par partie jouée
   const disponible = lot.actif && lot.stock_restant > 0
   const proba = disponible && totalPoids > 0 ? tauxDeGain * (lot.poids / totalPoids) : 0
   const uneChanceSur = proba > 0 ? Math.round(1 / proba) : null
+  const pctReel = totalPoids > 0 ? Math.round((lot.poids / totalPoids) * 100) : 0
 
   if (edition) {
     return (
@@ -69,9 +69,9 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
             <input type="number" min="0" className={`${CHAMP} mt-1 w-full`} value={valeurs.seuil_alerte}
               onChange={(e) => setValeurs((v) => ({ ...v, seuil_alerte: e.target.value }))} />
           </label>
-          <label className="text-xs opacity-70">Poids (part relative)
-            <input type="number" min="1" className={`${CHAMP} mt-1 w-full`} value={valeurs.poids}
-              onChange={(e) => setValeurs((v) => ({ ...v, poids: e.target.value }))} />
+          <label className="text-xs opacity-70">% répartition des gains (sur 100%)
+            <input type="number" min="1" max="100" className={`${CHAMP} mt-1 w-full`} value={valeurs.pct}
+              onChange={(e) => setValeurs((v) => ({ ...v, pct: e.target.value }))} />
           </label>
         </div>
         <div className="mt-3 flex gap-2">
@@ -95,7 +95,7 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
           {lot.nom} <span className="font-normal opacity-60">· {Number(lot.valeur_euros).toFixed(2).replace('.', ',')} €</span>
         </p>
         <p className="text-xs opacity-60">
-          seuil : {lot.seuil_alerte} · poids : {lot.poids}
+          seuil : {lot.seuil_alerte} · répartition : {pctReel}%
           {uneChanceSur
             ? ` · ≈ 1 chance sur ${uneChanceSur.toLocaleString('fr-FR')}`
             : ' · hors tirage'}
@@ -126,26 +126,32 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
 
 export default function FicheRestaurant() {
   const { id } = useParams()
-  const [resto, setResto] = useState(null)
+  const [lieu, setLieu] = useState(null)
   const [lots, setLots] = useState([])
   const [messageErreur, setMessageErreur] = useState(null)
 
-  // Édition des réglages de l'établissement
+  const [nomResto, setNomResto] = useState('')
+  const [villeResto, setVilleResto] = useState('')
+  const [telephoneResto, setTelephoneResto] = useState('')
+  const [contactResto, setContactResto] = useState('')
   const [tauxPct, setTauxPct] = useState('')
   const [emailContact, setEmailContact] = useState('')
 
-  // Formulaire nouveau lot
   const [formLot, setFormLot] = useState(false)
-  const [nl, setNl] = useState({ nom: '', description: '', valeur: '', stock: '', seuil: '5', poids: '10' })
+  const [nl, setNl] = useState({ nom: '', description: '', valeur: '', stock: '', seuil: '5', pct: '50' })
   const [erreurLot, setErreurLot] = useState(null)
 
   async function charger() {
     const [r1, r2] = await Promise.all([
-      supabase.from('restaurants').select('*').eq('id', id).single(),
-      supabase.from('lots').select('*').eq('restaurant_id', id).order('created_at'),
+      supabase.from('lieux').select('*').eq('id', id).single(),
+      supabase.from('lots').select('*').eq('lieu_id', id).order('created_at'),
     ])
     if (r1.error) { setMessageErreur("Établissement introuvable."); return }
-    setResto(r1.data)
+    setLieu(r1.data)
+    setNomResto(r1.data.nom ?? '')
+    setVilleResto(r1.data.ville ?? '')
+    setTelephoneResto(r1.data.telephone ?? '')
+    setContactResto(r1.data.contact ?? '')
     setTauxPct(String(Math.round(r1.data.taux_de_gain * 100)))
     setEmailContact(r1.data.email_contact ?? '')
     setLots(r2.data ?? [])
@@ -155,11 +161,18 @@ export default function FicheRestaurant() {
 
   async function enregistrerReglages() {
     const taux = parseFloat(String(tauxPct).replace(',', '.'))
+    if (!nomResto.trim() || !villeResto.trim()) {
+      setMessageErreur('Le nom et la ville sont requis.'); return
+    }
     if (Number.isNaN(taux) || taux < 0 || taux > 100) {
       setMessageErreur('Le taux de gain doit être entre 0 et 100 %.'); return
     }
     setMessageErreur(null)
-    await supabase.from('restaurants').update({
+    await supabase.from('lieux').update({
+      nom: nomResto.trim(),
+      ville: villeResto.trim(),
+      telephone: telephoneResto.trim() || null,
+      contact: contactResto.trim() || null,
       taux_de_gain: taux / 100,
       email_contact: emailContact.trim() || null,
     }).eq('id', id)
@@ -167,8 +180,98 @@ export default function FicheRestaurant() {
   }
 
   async function basculerActifResto() {
-    await supabase.from('restaurants').update({ actif: !resto.actif }).eq('id', id)
+    await supabase.from('lieux').update({ actif: !lieu.actif }).eq('id', id)
     charger()
+  }
+
+  function exporterPDF() {
+    const doc = new jsPDF()
+    const dateGen = new Date().toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+
+    // En-tête
+    doc.setFontSize(18)
+    doc.setTextColor(180, 30, 30)
+    doc.text('PILOU — Fiche établissement', 14, 20)
+
+    doc.setFontSize(11)
+    doc.setTextColor(40, 40, 40)
+    doc.text(`Générée le ${dateGen}`, 14, 28)
+
+    // Infos établissement
+    doc.setFontSize(13)
+    doc.setTextColor(180, 30, 30)
+    doc.text('Informations', 14, 40)
+
+    doc.setFontSize(11)
+    doc.setTextColor(40, 40, 40)
+    const infos = [
+      ['Nom', lieu.nom],
+      ['Ville', lieu.ville],
+      ['Téléphone', lieu.telephone ?? '—'],
+      ['Contact', lieu.contact ?? '—'],
+      ['Email d\'alerte', lieu.email_contact ?? '—'],
+      ['Statut', lieu.actif ? 'Actif' : 'Inactif'],
+      ['Taux de gain', `${Math.round(lieu.taux_de_gain * 100)} %`],
+    ]
+    autoTable(doc, {
+      startY: 44,
+      head: [],
+      body: infos,
+      theme: 'plain',
+      styles: { fontSize: 11, cellPadding: 2 },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
+    })
+
+    // Lots
+    const lotsActifs = lots.filter((l) => l.actif)
+    doc.setFontSize(13)
+    doc.setTextColor(180, 30, 30)
+    doc.text('Lots', 14, doc.lastAutoTable.finalY + 12)
+
+    const totalPoidsPDF = lotsActifs
+      .filter((l) => l.stock_restant > 0)
+      .reduce((s, l) => s + l.poids, 0)
+
+    const lignesLots = lots.map((l) => {
+      const pct = totalPoidsPDF > 0 ? Math.round((l.poids / totalPoidsPDF) * 100) : 0
+      const proba = totalPoidsPDF > 0 && l.stock_restant > 0
+        ? lieu.taux_de_gain * (l.poids / totalPoidsPDF) : 0
+      const chanceSur = proba > 0 ? `1 chance sur ${Math.round(1 / proba).toLocaleString('fr-FR')}` : 'Hors tirage'
+      return [
+        l.nom,
+        `${Number(l.valeur_euros).toFixed(2).replace('.', ',')} €`,
+        `${l.stock_restant} / ${l.stock_initial}`,
+        `${pct} %`,
+        chanceSur,
+        l.actif ? 'Actif' : 'Inactif',
+      ]
+    })
+
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 16,
+      head: [['Lot', 'Valeur', 'Stock', 'Répartition', 'Probabilité', 'Statut']],
+      body: lignesLots,
+      theme: 'striped',
+      headStyles: { fillColor: [180, 30, 30], textColor: 255, fontSize: 10 },
+      styles: { fontSize: 10, cellPadding: 3 },
+    })
+
+    // Zone signature
+    const signY = doc.lastAutoTable.finalY + 20
+    doc.setFontSize(11)
+    doc.setTextColor(40, 40, 40)
+    doc.text('Validation — L\'établissement confirme avoir pris connaissance de cette annexe :', 14, signY)
+    doc.text('Signature :', 14, signY + 16)
+    doc.line(40, signY + 16, 120, signY + 16)
+    doc.text('Date :', 130, signY + 16)
+    doc.line(148, signY + 16, 196, signY + 16)
+
+    // Pied de page
+    doc.setFontSize(8)
+    doc.setTextColor(150, 150, 150)
+    doc.text('Document généré depuis le back-office PILOU — Brasserie du Comté', 14, 290)
+
+    doc.save(`pilou-fiche-${lieu.nom.toLowerCase().replace(/\s+/g, '-')}.pdf`)
   }
 
   async function majLot(lotId, maj) {
@@ -191,28 +294,28 @@ export default function FicheRestaurant() {
     const valeur = parseFloat(String(nl.valeur).replace(',', '.'))
     const stock = parseInt(nl.stock, 10)
     const seuil = parseInt(nl.seuil, 10)
-    const poids = parseInt(nl.poids, 10)
+    const pct = parseInt(nl.pct, 10)
     if (!nl.nom.trim()) { setErreurLot('Le nom du lot est requis.'); return }
-    if ([valeur, stock, seuil, poids].some(Number.isNaN) || valeur < 0 || stock < 0 || seuil < 0 || poids < 1) {
-      setErreurLot('Vérifie les valeurs numériques (poids minimum : 1).'); return
+    if ([valeur, stock, seuil, pct].some(Number.isNaN) || valeur < 0 || stock < 0 || seuil < 0 || pct < 1 || pct > 100) {
+      setErreurLot('Vérifie les valeurs numériques (% entre 1 et 100).'); return
     }
     const { error } = await supabase.from('lots').insert({
-      restaurant_id: id,
+      lieu_id: id,
       nom: nl.nom.trim(),
       description: nl.description.trim() || null,
       valeur_euros: valeur,
       stock_initial: stock,
       stock_restant: stock,
       seuil_alerte: seuil,
-      poids,
+      poids: pct,
     })
     if (error) { setErreurLot('La création a échoué. Réessaie.'); return }
-    setNl({ nom: '', description: '', valeur: '', stock: '', seuil: '5', poids: '10' })
+    setNl({ nom: '', description: '', valeur: '', stock: '', seuil: '5', pct: '50' })
     setFormLot(false)
     charger()
   }
 
-  if (!resto) {
+  if (!lieu) {
     return (
       <main className="fond-papier flex min-h-screen items-center justify-center">
         <p className="text-pilou-encre opacity-60">{messageErreur ?? 'Chargement...'}</p>
@@ -221,6 +324,10 @@ export default function FicheRestaurant() {
   }
 
   const totalPoids = lots
+    .filter((l) => l.actif && l.stock_restant > 0)
+    .reduce((somme, l) => somme + l.poids, 0)
+
+  const totalPct = lots
     .filter((l) => l.actif && l.stock_restant > 0)
     .reduce((somme, l) => somme + l.poids, 0)
 
@@ -233,16 +340,22 @@ export default function FicheRestaurant() {
 
         <header className="mt-4 flex flex-wrap items-center justify-between gap-2">
           <h1 className="titre text-2xl font-bold text-pilou-rouge">
-            {resto.nom} <span className="text-base font-normal text-pilou-encre opacity-60">— {resto.ville}</span>
+            {lieu.nom} <span className="text-base font-normal text-pilou-encre opacity-60">— {lieu.ville}</span>
           </h1>
-          <button type="button" onClick={basculerActifResto}
-            className={`rounded border px-3 py-1.5 text-sm ${
-              resto.actif ? 'border-pilou-creme-fonce bg-white/70 hover:bg-white'
-              : 'border-pilou-rouge bg-pilou-rouge text-pilou-creme'}`}>
-            {resto.actif ? 'Désactiver l\u2019établissement' : 'Réactiver l\u2019établissement'}
-          </button>
+          <div className="flex gap-2">
+            <button type="button" onClick={exporterPDF}
+              className="rounded border border-pilou-creme-fonce bg-white/70 px-3 py-1.5 text-sm hover:bg-white">
+              📄 Exporter PDF
+            </button>
+            <button type="button" onClick={basculerActifResto}
+              className={`rounded border px-3 py-1.5 text-sm ${
+                lieu.actif ? 'border-pilou-creme-fonce bg-white/70 hover:bg-white'
+                : 'border-pilou-rouge bg-pilou-rouge text-pilou-creme'}`}>
+              {lieu.actif ? 'Désactiver l\u2019établissement' : 'Réactiver l\u2019établissement'}
+            </button>
+          </div>
         </header>
-        {!resto.actif && (
+        {!lieu.actif && (
           <p className="mt-2 rounded bg-pilou-rouge px-4 py-2 text-sm text-pilou-creme">
             Établissement inactif : il n'apparaît plus dans le formulaire et personne ne peut y jouer.
           </p>
@@ -254,20 +367,40 @@ export default function FicheRestaurant() {
 
         {/* ── Réglages ── */}
         <section className="mt-6 rounded bg-white/70 p-4 shadow-sm">
-          <h2 className="titre font-bold">Réglages du jeu</h2>
+          <h2 className="titre font-bold">Informations de l'établissement</h2>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="text-xs opacity-70">Nom de l'établissement *
+              <input type="text" className={`${CHAMP} mt-1 w-full`} value={nomResto}
+                onChange={(e) => setNomResto(e.target.value)} />
+            </label>
+            <label className="text-xs opacity-70">Ville *
+              <input type="text" className={`${CHAMP} mt-1 w-full`} value={villeResto}
+                onChange={(e) => setVilleResto(e.target.value)} />
+            </label>
+            <label className="text-xs opacity-70">Téléphone
+              <input type="tel" className={`${CHAMP} mt-1 w-full`} value={telephoneResto}
+                onChange={(e) => setTelephoneResto(e.target.value)} placeholder="06 12 34 56 78" />
+            </label>
+            <label className="text-xs opacity-70">Contact (nom du gérant)
+              <input type="text" className={`${CHAMP} mt-1 w-full`} value={contactResto}
+                onChange={(e) => setContactResto(e.target.value)} placeholder="Prénom Nom" />
+            </label>
+          </div>
+
+          <h2 className="titre mt-5 font-bold">Réglages du jeu</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="text-xs opacity-70">Taux de gain (%)
               <input type="text" className={`${CHAMP} mt-1 w-full`} value={tauxPct}
                 onChange={(e) => setTauxPct(e.target.value)} />
             </label>
-            <label className="text-xs opacity-70">Email d'alerte stock (facultatif)
+            <label className="text-xs opacity-70">Email d'alerte stock
               <input type="email" className={`${CHAMP} mt-1 w-full`} value={emailContact}
                 onChange={(e) => setEmailContact(e.target.value)} />
             </label>
           </div>
           <button type="button" onClick={enregistrerReglages}
             className="titre mt-3 rounded bg-pilou-rouge px-4 py-2 text-sm font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
-            Enregistrer les réglages
+            Enregistrer
           </button>
           <p className="mt-2 text-xs opacity-60">
             Le taux de gain s'applique immédiatement aux prochaines parties.
@@ -297,8 +430,10 @@ export default function FicheRestaurant() {
                 onChange={(e) => setNl((v) => ({ ...v, stock: e.target.value }))} />
               <input className={CHAMP} placeholder="Seuil d'alerte (ex: 5)" value={nl.seuil}
                 onChange={(e) => setNl((v) => ({ ...v, seuil: e.target.value }))} />
-              <input className={CHAMP} placeholder="Poids (part relative, ex: 10)" value={nl.poids}
-                onChange={(e) => setNl((v) => ({ ...v, poids: e.target.value }))} />
+              <label className="text-xs opacity-70 sm:col-span-2">% répartition des gains (ex: 50 pour 50%)
+                <input type="number" min="1" max="100" className={`${CHAMP} mt-1 w-full`} value={nl.pct}
+                  onChange={(e) => setNl((v) => ({ ...v, pct: e.target.value }))} />
+              </label>
             </div>
             {erreurLot && <p className="mt-2 text-sm text-pilou-rouge">{erreurLot}</p>}
             <button type="button" onClick={creerLot}
@@ -312,12 +447,12 @@ export default function FicheRestaurant() {
           {lots.length === 0 && <p className="text-sm opacity-60">Aucun lot pour cet établissement.</p>}
           {lots.map((lot) => (
             <LigneLot key={lot.id} lot={lot} totalPoids={totalPoids}
-              tauxDeGain={resto.taux_de_gain} onMaj={majLot} onSupprimer={supprimerLot} />
+              tauxDeGain={lieu.taux_de_gain} onMaj={majLot} onSupprimer={supprimerLot} />
           ))}
           {lots.length > 0 && (
             <p className="mt-4 border-t border-pilou-creme-fonce pt-3 text-xs opacity-60">
-              « 1 chance sur N » = probabilité réelle par partie jouée (taux de gain × part du lot
-              parmi les lots disponibles). Ce sont les chiffres à reporter dans le règlement du jeu.
+              « 1 chance sur N » = probabilité réelle par partie jouée (taux de gain × % de répartition du lot).
+              Ce sont les chiffres à reporter dans le règlement du jeu.
             </p>
           )}
         </section>
