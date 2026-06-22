@@ -18,6 +18,7 @@ export default function Formulaire() {
   const [email, setEmail] = useState('')
   const [telephone, setTelephone] = useState('')
   const [majeurEtReglement, setMajeurEtReglement] = useState(false)
+  const [consentementPromo, setConsentementPromo] = useState(false)
   const [newsletterBrasserie, setNewsletterBrasserie] = useState(false)
   const [newsletterEtablissement, setNewsletterEtablissement] = useState(false)
   const [erreurs, setErreurs] = useState({})
@@ -82,6 +83,7 @@ export default function Formulaire() {
           telephone: telephone.trim(),
           newsletterBrasserie,
           newsletterEtablissement,
+          consentementPromo,
         },
       },
     })
@@ -224,6 +226,18 @@ export default function Formulaire() {
           <span>
             J'accepte que mes coordonnées soient transmises à l'établissement / événement sélectionné
             afin de recevoir ses communications commerciales
+          </span>
+        </label>
+        <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={consentementPromo}
+            onChange={(e) => setConsentementPromo(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-pilou-rouge"
+          />
+          <span>
+            J'accepte que mon prénom et nom puissent être utilisés à des fins de communication
+            promotionnelle par la Brasserie du Comté
           </span>
         </label>
 

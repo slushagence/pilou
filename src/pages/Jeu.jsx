@@ -29,6 +29,7 @@ export default function Jeu() {
       p_telephone: joueur.telephone || null,
       p_newsletter_brasserie: joueur.newsletterBrasserie ?? false,
       p_newsletter_etablissement: joueur.newsletterEtablissement ?? false,
+      p_consentement_promo: joueur.consentementPromo ?? false,
     })
 
     if (error || !data) {

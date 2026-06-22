@@ -136,6 +136,7 @@ export default function FicheRestaurant() {
   const [contactResto, setContactResto] = useState('')
   const [tauxPct, setTauxPct] = useState('')
   const [emailContact, setEmailContact] = useState('')
+  const [codeAcces, setCodeAcces] = useState('')
 
   const [formLot, setFormLot] = useState(false)
   const [nl, setNl] = useState({ nom: '', description: '', valeur: '', stock: '', seuil: '5', pct: '50' })
@@ -154,6 +155,7 @@ export default function FicheRestaurant() {
     setContactResto(r1.data.contact ?? '')
     setTauxPct(String(Math.round(r1.data.taux_de_gain * 100)))
     setEmailContact(r1.data.email_contact ?? '')
+    setCodeAcces(r1.data.code_acces ?? '')
     setLots(r2.data ?? [])
   }
 
@@ -175,6 +177,7 @@ export default function FicheRestaurant() {
       contact: contactResto.trim() || null,
       taux_de_gain: taux / 100,
       email_contact: emailContact.trim() || null,
+      code_acces: codeAcces.trim() || null,
     }).eq('id', id)
     charger()
   }
@@ -397,6 +400,28 @@ export default function FicheRestaurant() {
               <input type="email" className={`${CHAMP} mt-1 w-full`} value={emailContact}
                 onChange={(e) => setEmailContact(e.target.value)} />
             </label>
+          </div>
+
+          <h2 className="titre mt-5 font-bold">Accès établissement</h2>
+          <p className="text-xs opacity-60 mt-1">
+            Code que le gérant saisit pour accéder à ses statistiques et gagnants.
+          </p>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            <label className="text-xs opacity-70">Code d'accès
+              <input type="text" className={`${CHAMP} mt-1 w-full`} value={codeAcces}
+                onChange={(e) => setCodeAcces(e.target.value)} placeholder="ex: pilou2024" />
+            </label>
+            <div className="text-xs opacity-70 flex flex-col justify-end">
+              <p>URL à communiquer au gérant :</p>
+              <a
+                href={`/etablissement/${lieu.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 font-mono text-pilou-rouge underline break-all"
+              >
+                /etablissement/{lieu.slug}
+              </a>
+            </div>
           </div>
           <button type="button" onClick={enregistrerReglages}
             className="titre mt-3 rounded bg-pilou-rouge px-4 py-2 text-sm font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">

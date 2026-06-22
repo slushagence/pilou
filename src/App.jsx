@@ -6,6 +6,7 @@ import Resultat from './pages/Resultat'
 import Lots from './pages/Lots'
 import Reglement from './pages/Reglement'
 import Admin from './pages/admin/Admin'
+import EtablissementAcces from './pages/EtablissementAcces'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/lots" element={<Lots />} />
         <Route path="/reglement" element={<Reglement />} />
         <Route path="/admin/*" element={<Admin />} />
+        <Route path="/etablissement/:slug" element={<EtablissementAcces />} />
       </Routes>
     </BrowserRouter>
   )

@@ -4,12 +4,11 @@ import { supabase } from '../supabase'
 import LogoPilou from '../components/LogoPilou'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// À COMPLÉTER avant la mise en production (puis faire valider par l'avocat) :
 const CONFIG = {
-  dateDebut: null,        // ex: '1er juillet 2026'
-  dateFin: null,          // ex: '31 août 2026'
-  urlJeu: null,           // ex: 'https://www.pilou-nissa.fr' (le domaine définitif)
-  produitsEligibles: ['Bière PILOU'], // compléter si d'autres produits
+  dateDebut: '1er juin 2026',
+  dateFin: '31 décembre 2026',
+  urlJeu: 'https://www.lapilou.fr',
+  produitsEligibles: ['Bière PILOU', 'Soft Brasserie du Comté'],
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
