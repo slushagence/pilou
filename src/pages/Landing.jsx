@@ -16,7 +16,7 @@ export default function Landing() {
         <img
           src={pieceIconique}
           alt="La pièce Pilou — Brasserie du Comté"
-          className="w-full object-contain drop-shadow-xl"
+          className="w-full object-contain mix-blend-multiply"
           draggable="false"
         />
       </div>
