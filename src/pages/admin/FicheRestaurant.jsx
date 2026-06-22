@@ -129,6 +129,7 @@ export default function FicheRestaurant() {
   const [lieu, setLieu] = useState(null)
   const [lots, setLots] = useState([])
   const [messageErreur, setMessageErreur] = useState(null)
+  const [messageSucces, setMessageSucces] = useState(null)
 
   const [nomResto, setNomResto] = useState('')
   const [villeResto, setVilleResto] = useState('')
@@ -138,14 +139,20 @@ export default function FicheRestaurant() {
   const [emailContact, setEmailContact] = useState('')
   const [codeAcces, setCodeAcces] = useState('')
 
+  // Stats du lieu
+  const [stats, setStats] = useState({ parties: 0, gagnants: 0 })
+
   const [formLot, setFormLot] = useState(false)
   const [nl, setNl] = useState({ nom: '', description: '', valeur: '', stock: '', seuil: '5', pct: '50' })
   const [erreurLot, setErreurLot] = useState(null)
 
+  const jourParis = new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris' }).format(new Date())
+
   async function charger() {
-    const [r1, r2] = await Promise.all([
+    const [r1, r2, r3] = await Promise.all([
       supabase.from('lieux').select('*').eq('id', id).single(),
       supabase.from('lots').select('*').eq('lieu_id', id).order('created_at'),
+      supabase.from('parties').select('resultat').eq('lieu_id', id).eq('jour', jourParis),
     ])
     if (r1.error) { setMessageErreur("Établissement introuvable."); return }
     setLieu(r1.data)
@@ -157,9 +164,40 @@ export default function FicheRestaurant() {
     setEmailContact(r1.data.email_contact ?? '')
     setCodeAcces(r1.data.code_acces ?? '')
     setLots(r2.data ?? [])
+    const parties = r3.data ?? []
+    setStats({
+      parties: parties.length,
+      gagnants: parties.filter((p) => p.resultat === 'gagne').length,
+    })
   }
 
   useEffect(() => { charger() }, [id])
+
+  async function envoyerIdentifiants() {
+    if (!emailContact.trim() || !codeAcces.trim()) {
+      setMessageErreur("Renseignez l'email et le code d'accès avant d'envoyer."); return
+    }
+    // On sauvegarde d'abord les réglages
+    await enregistrerReglages()
+    // Puis on envoie le mail via l'edge function
+    const { error } = await supabase.functions.invoke('emails-pilou', {
+      body: {
+        type: 'identifiants',
+        email: emailContact.trim(),
+        nom: nomResto.trim(),
+        ville: villeResto.trim(),
+        slug: lieu.slug,
+        code_acces: codeAcces.trim(),
+      },
+      headers: { 'x-pilou-secret': import.meta.env.VITE_WEBHOOK_SECRET ?? '' },
+    })
+    if (error) {
+      setMessageErreur("Erreur lors de l'envoi du mail.")
+    } else {
+      setMessageSucces(`Mail d'accès envoyé à ${emailContact} !`)
+      setTimeout(() => setMessageSucces(null), 4000)
+    }
+  }
 
   async function enregistrerReglages() {
     const taux = parseFloat(String(tauxPct).replace(',', '.'))
@@ -367,6 +405,21 @@ export default function FicheRestaurant() {
         {messageErreur && (
           <p className="mt-4 rounded bg-pilou-rouge px-4 py-2 text-sm text-pilou-creme">{messageErreur}</p>
         )}
+        {messageSucces && (
+          <p className="mt-4 rounded bg-green-600 px-4 py-2 text-sm text-white">{messageSucces}</p>
+        )}
+
+        {/* ── Stats du jour ── */}
+        <section className="mt-4 grid grid-cols-2 gap-4">
+          <div className="rounded bg-white/70 p-4 text-center shadow-sm">
+            <p className="titre text-3xl font-bold text-pilou-rouge">{stats.parties}</p>
+            <p className="text-sm opacity-70">parties aujourd'hui</p>
+          </div>
+          <div className="rounded bg-white/70 p-4 text-center shadow-sm">
+            <p className="titre text-3xl font-bold text-pilou-or">{stats.gagnants}</p>
+            <p className="text-sm opacity-70">gagnants aujourd'hui</p>
+          </div>
+        </section>
 
         {/* ── Réglages ── */}
         <section className="mt-6 rounded bg-white/70 p-4 shadow-sm">
@@ -423,6 +476,11 @@ export default function FicheRestaurant() {
               </a>
             </div>
           </div>
+          <button type="button" onClick={envoyerIdentifiants}
+            className="titre mt-3 rounded border border-pilou-rouge px-4 py-2 text-sm font-bold text-pilou-rouge hover:bg-pilou-rouge hover:text-pilou-creme">
+            📧 Envoyer les identifiants par mail
+          </button>
+          <p className="mt-1 text-xs opacity-50">Envoie l'URL et le code d'accès à l'email de l'établissement.</p>
           <button type="button" onClick={enregistrerReglages}
             className="titre mt-3 rounded bg-pilou-rouge px-4 py-2 text-sm font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
             Enregistrer

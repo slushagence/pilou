@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Navigate, Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import LogoPilou from '../components/LogoPilou'
 import PiecePilou from '../components/PiecePilou'
-import stade from '../assets/pilou/pilou-stade.jpg'
+import stade from '../assets/pilou/pilou-stade.png'
 
 export default function Jeu() {
   const { state } = useLocation()
