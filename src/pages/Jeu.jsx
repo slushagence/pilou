@@ -92,7 +92,7 @@ export default function Jeu() {
         </Link>
 
         <img src={stade} alt="" draggable="false"
-          className="mt-8 w-full rounded shadow-lg opacity-95" />
+          className="mt-8 w-full opacity-95 mix-blend-multiply" />
       </div>
     </main>
   )
