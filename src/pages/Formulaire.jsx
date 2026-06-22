@@ -97,7 +97,7 @@ export default function Formulaire() {
   return (
     <main className="fond-papier min-h-screen px-6 py-10 text-pilou-encre">
       <div className="mx-auto max-w-md">
-        <LogoPilou variante="couleur" hauteur={56} />
+        <LogoPilou variante="couleur" hauteur={112} />
 
         <h1 className="titre mt-8 text-center text-3xl font-bold leading-tight">
           Avant de jouer,
@@ -255,7 +255,7 @@ export default function Formulaire() {
           href="https://www.lapilou.fr"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 block text-center text-xs underline opacity-50 hover:opacity-80"
+          className="mt-4 block text-center text-sm font-semibold text-pilou-rouge underline hover:opacity-80"
         >
           www.lapilou.fr
         </a>

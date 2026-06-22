@@ -83,7 +83,7 @@ export default function Resultat() {
           href="https://www.lapilou.fr"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 text-xs underline opacity-50 hover:opacity-80"
+          className="mt-3 text-sm font-semibold text-pilou-rouge underline hover:opacity-80"
         >
           www.lapilou.fr
         </a>
