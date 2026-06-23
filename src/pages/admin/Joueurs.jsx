@@ -154,7 +154,7 @@ export default function Joueurs() {
             <select value={lieux.filter} onChange={(e) => setFiltreResto(e.target.value)}
               className="rounded border border-pilou-creme-fonce bg-white px-2 py-1.5">
               <option value="tous">Tous</option>
-              {lieux.map((r) => (
+              {lieux.map((l) => (
                 <option key={l.id} value={l.id}>{l.nom} — {l.ville}</option>
               ))}
             </select>
