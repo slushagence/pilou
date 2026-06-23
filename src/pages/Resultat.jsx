@@ -2,6 +2,7 @@ import { useLocation, Navigate, Link } from 'react-router-dom'
 import LogoPilou from '../components/LogoPilou'
 import PiecePilou from '../components/PiecePilou'
 import enfant from '../assets/pilou/pilou-enfant.webp'
+import logoBDC from '../assets/pilou/logo-bdc_blanc.png'
 
 export default function Resultat() {
   const { state } = useLocation()
@@ -79,11 +80,15 @@ export default function Resultat() {
           Retour à l'accueil
         </Link>
 
+        <img src={logoBDC} alt="Brasserie du Comté"
+          className="mt-6 w-20 object-contain opacity-80"
+          draggable="false" />
+
         <a
           href="https://www.lapilou.fr"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 text-sm font-semibold text-pilou-rouge underline hover:opacity-80"
+          className="mt-3 text-sm font-semibold text-pilou-creme underline hover:opacity-80"
         >
           www.lapilou.fr
         </a>

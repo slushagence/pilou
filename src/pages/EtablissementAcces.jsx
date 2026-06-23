@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import LogoPilou from '../components/LogoPilou'
+import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const PAR_PAGE = 30
 
@@ -86,6 +89,39 @@ export default function EtablissementAcces() {
   }, [authentifie, dateDebut, dateFin, filtreGagnants, filtreNewsletter])
 
   function exporterCSV() {
+    const lignes = buildLignesGagnants()
+    csvTelecharger(`pilou-${slug}.csv`, lignes)
+  }
+
+  function exporterXLS() {
+    const lignes = buildLignesGagnants()
+    const ws = XLSX.utils.aoa_to_sheet(lignes)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Gagnants')
+    XLSX.writeFile(wb, `pilou-${slug}.xlsx`)
+  }
+
+  function exporterPDF() {
+    const lignes = buildLignesGagnants()
+    const doc = new jsPDF({ orientation: 'landscape' })
+    doc.setFontSize(13)
+    doc.setTextColor(163, 32, 24)
+    doc.text(`PILOU — ${lieu.nom} — ${lieu.ville}`, 14, 16)
+    doc.setFontSize(9)
+    doc.setTextColor(100)
+    doc.text(`Exporté le ${new Date().toLocaleDateString('fr-FR')}`, 14, 22)
+    autoTable(doc, {
+      startY: 26,
+      head: [lignes[0]],
+      body: lignes.slice(1),
+      theme: 'striped',
+      headStyles: { fillColor: [163, 32, 24], textColor: 255, fontSize: 8 },
+      styles: { fontSize: 7, cellPadding: 2 },
+    })
+    doc.save(`pilou-${slug}.pdf`)
+  }
+
+  function buildLignesGagnants() {
     const lignes = [['Date', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Résultat', 'Lot', 'Code retrait', 'Newsletter']]
     for (const p of partiesFiltrees) {
       const d = new Date(p.created_at)
@@ -97,7 +133,7 @@ export default function EtablissementAcces() {
         p.newsletter_etablissement ? 'Oui' : 'Non',
       ])
     }
-    csvTelecharger(`pilou-${slug}.csv`, lignes)
+    return lignes
   }
 
   const totalParties = parties.length
@@ -201,10 +237,16 @@ export default function EtablissementAcces() {
             <input type="checkbox" checked={filtreNewsletter} onChange={(e) => setFiltreNewsletter(e.target.checked)} className="accent-pilou-rouge" />
             Newsletter établissement
           </label>
-          <button type="button" onClick={exporterCSV}
-            className="ml-auto rounded border border-pilou-creme-fonce bg-white/70 px-3 py-1.5 text-sm hover:bg-white">
-            Exporter CSV
-          </button>
+          <div className="flex flex-wrap gap-2 ml-auto">
+            <div className="flex rounded border border-pilou-creme-fonce overflow-hidden text-sm">
+              <button type="button" onClick={exporterCSV}
+                className="bg-white/70 px-3 py-1.5 hover:bg-white">CSV</button>
+              <button type="button" onClick={exporterXLS}
+                className="border-l border-pilou-creme-fonce bg-white/70 px-3 py-1.5 hover:bg-white">XLS</button>
+              <button type="button" onClick={exporterPDF}
+                className="border-l border-pilou-creme-fonce bg-white/70 px-3 py-1.5 hover:bg-white">PDF</button>
+            </div>
+          </div>
         </section>
         <p className="mt-1 text-xs opacity-50">
           RGPD : l'export newsletter ne contient que les joueurs ayant consenti à recevoir vos communications.

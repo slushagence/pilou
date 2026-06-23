@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase'
 import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 // Joueurs & gagnants : liste filtrable des parties, marquage "lot retiré",
 // exports CSV et XLS (parties affichées / contacts newsletter opt-in dédoublonnés).
@@ -34,6 +36,11 @@ export default function Joueurs() {
   const [messageErreur, setMessageErreur] = useState(null)
   const [page, setPage] = useState(1)
 
+  // Période
+  const jourParis = new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris' }).format(new Date())
+  const [dateDebut, setDateDebut] = useState('2026-01-01')
+  const [dateFin, setDateFin] = useState(jourParis)
+
   // Filtres
   const [filtreResto, setFiltreResto] = useState('tous')
   const [filtreGagnants, setFiltreGagnants] = useState(false)
@@ -47,6 +54,8 @@ export default function Joueurs() {
     let requete = supabase
       .from('parties')
       .select('*')
+      .gte('jour', dateDebut)
+      .lte('jour', dateFin)
       .order('created_at', { ascending: false })
       .limit(2000)
     if (filtreResto !== 'tous') requete = requete.eq('lieu_id', filtreResto)
@@ -68,7 +77,7 @@ export default function Joueurs() {
     setChargement(false)
   }
 
-  useEffect(() => { charger() }, [filtreResto, filtreGagnants, filtreNewsBrasserie, filtreNewsEtab])
+  useEffect(() => { charger() }, [filtreResto, filtreGagnants, filtreNewsBrasserie, filtreNewsEtab, dateDebut, dateFin])
 
   const nomLieu = useMemo(() => {
     const m = new Map(lieux.map((l) => [l.id, `${l.nom} — ${l.ville}`]))
@@ -124,13 +133,34 @@ export default function Joueurs() {
   function exporterParties(format) {
     const lignes = buildLignesParties()
     if (format === 'xls') xlsTelecharger('pilou-parties.xlsx', lignes)
+    else if (format === 'pdf') pdfTelecharger('pilou-parties', lignes)
     else csvTelecharger('pilou-parties.csv', lignes)
   }
 
   function exporterNewsletter(format) {
     const lignes = buildLignesNewsletter()
     if (format === 'xls') xlsTelecharger('pilou-contacts-newsletter-brasserie.xlsx', lignes)
+    else if (format === 'pdf') pdfTelecharger('pilou-newsletter', lignes)
     else csvTelecharger('pilou-contacts-newsletter-brasserie.csv', lignes)
+  }
+
+  function pdfTelecharger(nomFichier, lignes) {
+    const doc = new jsPDF({ orientation: 'landscape' })
+    doc.setFontSize(13)
+    doc.setTextColor(163, 32, 24)
+    doc.text('PILOU — ' + nomFichier.replace('pilou-', '').replace(/-/g, ' ').toUpperCase(), 14, 16)
+    doc.setFontSize(9)
+    doc.setTextColor(100)
+    doc.text(`Exporté le ${new Date().toLocaleDateString('fr-FR')}`, 14, 22)
+    autoTable(doc, {
+      startY: 26,
+      head: [lignes[0]],
+      body: lignes.slice(1),
+      theme: 'striped',
+      headStyles: { fillColor: [163, 32, 24], textColor: 255, fontSize: 8 },
+      styles: { fontSize: 7, cellPadding: 2 },
+    })
+    doc.save(`${nomFichier}.pdf`)
   }
 
   const STYLE_FILTRE = 'flex items-center gap-2 text-sm'
@@ -147,11 +177,32 @@ export default function Joueurs() {
           <p className="mt-4 rounded bg-pilou-rouge px-4 py-2 text-sm text-pilou-creme">{messageErreur}</p>
         )}
 
+        {/* ── Période ── */}
+        <section className="mt-4 flex flex-wrap items-center gap-3 rounded bg-white/70 p-4 shadow-sm">
+          <span className="text-sm font-semibold opacity-70">Période :</span>
+          {[
+            { label: "Aujourd'hui", d: jourParis, f: jourParis },
+            { label: '7 jours', d: (() => { const d = new Date(); d.setDate(d.getDate()-6); return new Intl.DateTimeFormat('fr-CA',{timeZone:'Europe/Paris'}).format(d) })(), f: jourParis },
+            { label: 'Ce mois', d: (() => { const d = new Date(); d.setDate(1); return new Intl.DateTimeFormat('fr-CA',{timeZone:'Europe/Paris'}).format(d) })(), f: jourParis },
+            { label: 'Total', d: '2026-01-01', f: jourParis },
+          ].map(({ label, d, f }) => (
+            <button key={label} type="button" onClick={() => { setDateDebut(d); setDateFin(f) }}
+              className={`rounded border px-2 py-1 text-xs ${dateDebut === d && dateFin === f ? 'bg-pilou-rouge text-pilou-creme border-pilou-rouge' : 'border-pilou-creme-fonce bg-white hover:bg-pilou-creme'}`}>
+              {label}
+            </button>
+          ))}
+          <input type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)}
+            className="rounded border border-pilou-creme-fonce bg-white px-2 py-1 text-xs" />
+          <span className="opacity-60 text-xs">→</span>
+          <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)}
+            className="rounded border border-pilou-creme-fonce bg-white px-2 py-1 text-xs" />
+        </section>
+
         {/* ── Filtres ── */}
-        <section className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 rounded bg-white/70 p-4 shadow-sm">
+        <section className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3 rounded bg-white/70 p-4 shadow-sm">
           <label className={STYLE_FILTRE}>
             Établissement
-            <select value={lieux.filter} onChange={(e) => setFiltreResto(e.target.value)}
+            <select value={filtreResto} onChange={(e) => setFiltreResto(e.target.value)}
               className="rounded border border-pilou-creme-fonce bg-white px-2 py-1.5">
               <option value="tous">Tous</option>
               {lieux.map((l) => (
@@ -194,6 +245,10 @@ export default function Joueurs() {
                 className="border-l border-pilou-creme-fonce bg-white/70 px-3 py-1.5 hover:bg-white">
                 XLS
               </button>
+              <button type="button" onClick={() => exporterParties('pdf')}
+                className="border-l border-pilou-creme-fonce bg-white/70 px-3 py-1.5 hover:bg-white">
+                PDF
+              </button>
             </div>
             <div className="flex rounded overflow-hidden text-sm">
               <button type="button" onClick={() => exporterNewsletter('csv')}
@@ -203,6 +258,10 @@ export default function Joueurs() {
               <button type="button" onClick={() => exporterNewsletter('xls')}
                 className="titre border-l border-pilou-creme bg-pilou-rouge px-3 py-1.5 font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
                 XLS
+              </button>
+              <button type="button" onClick={() => exporterNewsletter('pdf')}
+                className="titre border-l border-pilou-creme bg-pilou-rouge px-3 py-1.5 font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
+                PDF
               </button>
             </div>
           </div>

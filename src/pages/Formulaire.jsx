@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import LogoPilou from '../components/LogoPilou'
+import logoBDC from '../assets/pilou/logo-bdc.png'
 
 export default function Formulaire() {
   const navigate = useNavigate()
@@ -193,7 +194,7 @@ export default function Formulaire() {
             type="checkbox"
             checked={majeurEtReglement}
             onChange={(e) => setMajeurEtReglement(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-pilou-rouge"
+            className="mt-0.5 h-5 w-5 flex-shrink-0 accent-pilou-rouge"
           />
           <span>
             J'ai plus de 18 ans et j'accepte le{' '}
@@ -212,7 +213,7 @@ export default function Formulaire() {
             type="checkbox"
             checked={newsletterBrasserie}
             onChange={(e) => setNewsletterBrasserie(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-pilou-rouge"
+            className="mt-0.5 h-5 w-5 flex-shrink-0 accent-pilou-rouge"
           />
           <span>Je souhaite recevoir la newsletter de la Brasserie</span>
         </label>
@@ -221,7 +222,7 @@ export default function Formulaire() {
             type="checkbox"
             checked={newsletterEtablissement}
             onChange={(e) => setNewsletterEtablissement(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-pilou-rouge"
+            className="mt-0.5 h-5 w-5 flex-shrink-0 accent-pilou-rouge"
           />
           <span>
             J'accepte que mes coordonnées soient transmises à l'établissement / événement sélectionné
@@ -233,7 +234,7 @@ export default function Formulaire() {
             type="checkbox"
             checked={consentementPromo}
             onChange={(e) => setConsentementPromo(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-pilou-rouge"
+            className="mt-0.5 h-5 w-5 flex-shrink-0 accent-pilou-rouge"
           />
           <span>
             J'accepte que mon prénom et nom puissent être utilisés à des fins de communication
@@ -250,6 +251,10 @@ export default function Formulaire() {
         >
           C'est parti !
         </button>
+
+        <img src={logoBDC} alt="Brasserie du Comté"
+          className="mt-6 w-20 object-contain mx-auto mix-blend-multiply"
+          draggable="false" />
 
         <a
           href="https://www.lapilou.fr"

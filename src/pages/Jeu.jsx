@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import LogoPilou from '../components/LogoPilou'
 import PiecePilou from '../components/PiecePilou'
 import stade from '../assets/pilou/pilou-stade.png'
+import logoBDC from '../assets/pilou/logo-bdc_blanc.png'
 
 export default function Jeu() {
   const { state } = useLocation()
@@ -93,6 +94,15 @@ export default function Jeu() {
 
         <img src={stade} alt="" draggable="false"
           className="mt-8 w-full opacity-95 mix-blend-multiply" />
+
+        <img src={logoBDC} alt="Brasserie du Comté"
+          className="mt-6 w-20 object-contain opacity-80"
+          draggable="false" />
+
+        <a href="https://www.lapilou.fr" target="_blank" rel="noopener noreferrer"
+          className="mt-2 text-sm font-semibold text-pilou-creme underline hover:opacity-80">
+          www.lapilou.fr
+        </a>
       </div>
     </main>
   )

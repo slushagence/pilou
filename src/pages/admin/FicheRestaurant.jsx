@@ -531,12 +531,22 @@ export default function FicheRestaurant() {
             <LigneLot key={lot.id} lot={lot} totalPoids={totalPoids}
               tauxDeGain={lieu.taux_de_gain} onMaj={majLot} onSupprimer={supprimerLot} />
           ))}
-          {lots.length > 0 && (
-            <p className="mt-4 border-t border-pilou-creme-fonce pt-3 text-xs opacity-60">
-              « 1 chance sur N » = probabilité réelle par partie jouée (taux de gain × % de répartition du lot).
-              Ce sont les chiffres à reporter dans le règlement du jeu.
-            </p>
-          )}
+          {lots.length > 0 && (() => {
+            const totalPct = lots
+              .filter((l) => l.actif && l.stock_restant > 0)
+              .reduce((s, l) => s + l.poids, 0)
+            const ok = totalPct === 100
+            return (
+              <div className={`mt-4 border-t border-pilou-creme-fonce pt-3 flex items-center justify-between`}>
+                <p className="text-xs opacity-60">
+                  « 1 chance sur N » = probabilité réelle par partie jouée.
+                </p>
+                <p className={`text-sm font-bold ${ok ? 'text-green-600' : 'text-pilou-rouge'}`}>
+                  Total répartition : {totalPct}% {ok ? '✓' : '≠ 100%'}
+                </p>
+              </div>
+            )
+          })()}
         </section>
       </div>
     </main>
