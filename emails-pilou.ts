@@ -184,11 +184,38 @@ function emailAlerte(alerte, emailEtablissement) {
 }
 
 Deno.serve(async (req) => {
+  const payload = await req.json()
+
+  // ── Cas identifiants : appelé depuis l'admin authentifié (pas de webhook secret requis)
+  if (payload.type === 'identifiants') {
+    const { email, nom, ville, slug, code_acces } = payload
+    const baseUrl = Deno.env.get('APP_URL') ?? 'https://pilou-roan.vercel.app'
+    const url = `${baseUrl}/etablissement/${slug}`
+    const html = `
+    <div style="font-family:Arial,sans-serif;color:#2b1e16;max-width:480px">
+      <h2 style="color:#a32018;margin:0 0 16px">🪙 Accès à votre espace PILOU</h2>
+      <p style="margin:0 0 8px">Bonjour,</p>
+      <p style="margin:0 0 16px">
+        Voici vos identifiants pour accéder à votre espace établissement <strong>${nom} — ${ville}</strong> :
+      </p>
+      <p style="margin:0 0 4px"><strong>URL :</strong><br>
+        <a href="${url}" style="color:#a32018">${url}</a>
+      </p>
+      <p style="margin:16px 0 4px"><strong>Code d'accès :</strong></p>
+      <p style="font-size:24px;font-weight:bold;letter-spacing:4px;color:#2b1e16;margin:0 0 16px">${code_acces}</p>
+      <p style="margin:0;font-size:13px;color:#777">
+        Depuis votre espace, vous pouvez consulter vos statistiques, la liste de vos gagnants et vos lots disponibles.<br>
+        En cas de problème, contactez-nous à <a href="mailto:${EMAIL_BRASSERIE}" style="color:#a32018">${EMAIL_BRASSERIE}</a>.
+      </p>
+    </div>`
+    const ok = await envoyerEmail(email, `🪙 Vos accès PILOU — ${nom}`, html)
+    return new Response(JSON.stringify({ ok }), { headers: { 'content-type': 'application/json' } })
+  }
+
+  // ── Tous les autres cas : vérification du webhook secret
   if (req.headers.get('x-pilou-secret') !== WEBHOOK_SECRET) {
     return new Response('non autorisé', { status: 401 })
   }
-
-  const payload = await req.json()
 
   // ── Cas 1 : un joueur vient de gagner
   if (payload.table === 'parties' && payload.type === 'UPDATE') {

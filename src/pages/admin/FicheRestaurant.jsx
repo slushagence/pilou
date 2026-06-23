@@ -189,7 +189,6 @@ export default function FicheRestaurant() {
         slug: lieu.slug,
         code_acces: codeAcces.trim(),
       },
-      headers: { 'x-pilou-secret': import.meta.env.VITE_WEBHOOK_SECRET ?? '' },
     })
     if (error) {
       setMessageErreur("Erreur lors de l'envoi du mail.")
