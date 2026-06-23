@@ -54,14 +54,24 @@ export default function Dashboard() {
   // Recherche établissements
   const [rechercheLieux, setRechercheLieux] = useState('')
 
-  function telechargerTemplate() {
-    const wb = XLSX.utils.book_new()
-    const headers = ['nom', 'ville', 'email_contact', 'telephone', 'contact', 'taux_de_gain_%', 'code_acces']
-    const exemple = ['Le Bar du Soleil', 'Nice', 'contact@bar.fr', '06 12 34 56 78', 'Jean Dupont', 25, 'pilou2026']
-    const ws = XLSX.utils.aoa_to_sheet([headers, exemple])
+  function exporterLieux() {
+    const lignes = [['nom', 'ville', 'email_contact', 'telephone', 'contact', 'taux_de_gain_%', 'code_acces']]
+    for (const lieu of lieux) {
+      lignes.push([
+        lieu.nom,
+        lieu.ville,
+        lieu.email_contact ?? '',
+        lieu.telephone ?? '',
+        lieu.contact ?? '',
+        Math.round(lieu.taux_de_gain * 100),
+        lieu.code_acces ?? '',
+      ])
+    }
+    const ws = XLSX.utils.aoa_to_sheet(lignes)
     ws['!cols'] = [30, 20, 30, 18, 24, 18, 22].map((w) => ({ wch: w }))
+    const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Établissements')
-    XLSX.writeFile(wb, 'pilou-template-etablissements.xlsx')
+    XLSX.writeFile(wb, 'pilou-etablissements.xlsx')
   }
 
   async function importerXLS(e) {
@@ -270,9 +280,9 @@ export default function Dashboard() {
         <div className="mt-10 flex flex-wrap items-center justify-between gap-2">
           <h2 className="titre text-lg font-bold text-pilou-rouge">Établissements</h2>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={telechargerTemplate}
+            <button type="button" onClick={exporterLieux}
               className="rounded border border-pilou-creme-fonce bg-white/70 px-3 py-1.5 text-sm hover:bg-white">
-              📥 Template XLS
+              📥 Exporter XLS
             </button>
             <button type="button" onClick={() => inputFichier.current?.click()}
               className="rounded border border-pilou-creme-fonce bg-white/70 px-3 py-1.5 text-sm hover:bg-white">
