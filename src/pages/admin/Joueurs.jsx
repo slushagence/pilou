@@ -68,7 +68,7 @@ export default function Joueurs() {
     setChargement(false)
   }
 
-  useEffect(() => { charger() }, [lieux.filter, filtreGagnants, filtreNewsBrasserie, filtreNewsEtab])
+  useEffect(() => { charger() }, [filtreResto, filtreGagnants, filtreNewsBrasserie, filtreNewsEtab])
 
   const nomLieu = useMemo(() => {
     const m = new Map(lieux.map((l) => [l.id, `${l.nom} — ${l.ville}`]))
