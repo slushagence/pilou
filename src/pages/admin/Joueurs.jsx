@@ -49,7 +49,7 @@ export default function Joueurs() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(2000)
-    if (lieux.filter !== 'tous') requete = requete.eq('lieu_id', filtreResto)
+    if (filtreResto !== 'tous') requete = requete.eq('lieu_id', filtreResto)
     if (filtreGagnants) requete = requete.eq('resultat', 'gagne')
     if (filtreNewsBrasserie) requete = requete.eq('newsletter_brasserie', true)
     if (filtreNewsEtab) requete = requete.eq('newsletter_etablissement', true)
