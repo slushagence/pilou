@@ -260,7 +260,7 @@ export default function Formulaire() {
           href="https://www.lapilou.fr"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 block text-center text-sm font-semibold text-pilou-rouge underline hover:opacity-80"
+          className="mt-4 block text-center text-base font-bold text-pilou-rouge uppercase underline hover:opacity-80"
         >
           <><i>Qu'es la Pilou ?</i> Visitez notre site pour en savoir plus !</>
         </a>
