@@ -46,6 +46,7 @@ export default function Joueurs() {
   const [filtreGagnants, setFiltreGagnants] = useState(false)
   const [filtreNewsBrasserie, setFiltreNewsBrasserie] = useState(false)
   const [filtreNewsEtab, setFiltreNewsEtab] = useState(false)
+  const [filtreConsentement, setFiltreConsentement] = useState(false)
   const [recherche, setRecherche] = useState('')
 
   async function charger() {
@@ -62,6 +63,7 @@ export default function Joueurs() {
     if (filtreGagnants) requete = requete.eq('resultat', 'gagne')
     if (filtreNewsBrasserie) requete = requete.eq('newsletter_brasserie', true)
     if (filtreNewsEtab) requete = requete.eq('newsletter_etablissement', true)
+    if (filtreConsentement) requete = requete.eq('consentement_promo', true)
 
     const [r1, r2] = await Promise.all([
       supabase.from('lieux').select('id, nom, ville').order('nom'),
@@ -77,7 +79,7 @@ export default function Joueurs() {
     setChargement(false)
   }
 
-  useEffect(() => { charger() }, [filtreResto, filtreGagnants, filtreNewsBrasserie, filtreNewsEtab, dateDebut, dateFin])
+  useEffect(() => { charger() }, [filtreResto, filtreGagnants, filtreNewsBrasserie, filtreNewsEtab, filtreConsentement, dateDebut, dateFin])
 
   const nomLieu = useMemo(() => {
     const m = new Map(lieux.map((l) => [l.id, `${l.nom} — ${l.ville}`]))
@@ -224,6 +226,11 @@ export default function Joueurs() {
             <input type="checkbox" checked={filtreNewsEtab}
               onChange={(e) => setFiltreNewsEtab(e.target.checked)} className="accent-pilou-rouge" />
             Newsletter établissement
+          </label>
+          <label className={STYLE_FILTRE}>
+            <input type="checkbox" checked={filtreConsentement}
+              onChange={(e) => setFiltreConsentement(e.target.checked)} className="accent-pilou-rouge" />
+            Acceptation communication
           </label>
           <input type="search" placeholder="Rechercher (email, nom, code...)" value={recherche}
             onChange={(e) => { setRecherche(e.target.value); setPage(1) }}

@@ -65,7 +65,7 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
             <input type="number" min="0" className={`${CHAMP} mt-1 w-full`} value={valeurs.stock_initial}
               onChange={(e) => setValeurs((v) => ({ ...v, stock_initial: e.target.value }))} />
           </label>
-          <label className="text-xs opacity-70">Seuil d'alerte
+          <label className="text-xs opacity-70">Alerte stock (reste X → mail BDC)
             <input type="number" min="0" className={`${CHAMP} mt-1 w-full`} value={valeurs.seuil_alerte}
               onChange={(e) => setValeurs((v) => ({ ...v, seuil_alerte: e.target.value }))} />
           </label>
@@ -95,7 +95,7 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
           {lot.nom} <span className="font-normal opacity-60">· {Number(lot.valeur_euros).toFixed(2).replace('.', ',')} €</span>
         </p>
         <p className="text-xs opacity-60">
-          seuil : {lot.seuil_alerte} · répartition : {pctReel}%
+          alerte à {lot.seuil_alerte} lots · répartition : {pctReel}%
           {uneChanceSur
             ? ` · ≈ 1 chance sur ${uneChanceSur.toLocaleString('fr-FR')}`
             : ' · hors tirage'}
@@ -510,7 +510,7 @@ export default function FicheRestaurant() {
                 onChange={(e) => setNl((v) => ({ ...v, description: e.target.value }))} />
               <input className={CHAMP} placeholder="Stock initial *" value={nl.stock}
                 onChange={(e) => setNl((v) => ({ ...v, stock: e.target.value }))} />
-              <input className={CHAMP} placeholder="Seuil d'alerte (ex: 5)" value={nl.seuil}
+              <input className={CHAMP} placeholder="Alerte stock (reste X → mail BDC) (ex: 5)" value={nl.seuil}
                 onChange={(e) => setNl((v) => ({ ...v, seuil: e.target.value }))} />
               <label className="text-xs opacity-70 sm:col-span-2">% répartition des gains (ex: 50 pour 50%)
                 <input type="number" min="1" max="100" className={`${CHAMP} mt-1 w-full`} value={nl.pct}

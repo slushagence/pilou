@@ -166,19 +166,38 @@ export default function Dashboard() {
     if (Number.isNaN(taux) || taux < 0 || taux > 100) {
       setErreurForm('Le taux de gain doit être entre 0 et 100 %.'); return
     }
-    const { error } = await supabase.from('lieux').insert({
+    const { data: newLieu, error } = await supabase.from('lieux').insert({
       nom: nvNom.trim(),
       ville: nvVille.trim(),
       slug: genererSlug(nvNom, nvVille),
       taux_de_gain: taux / 100,
       email_contact: nvEmail.trim() || null,
-    })
+    }).select('id').single()
     if (error) {
       setErreurForm(error.code === '23505'
         ? 'Un établissement avec ce nom et cette ville existe déjà.'
         : "La création a échoué. Réessaie.")
       return
     }
+    // Créer les 2 lots BDC par défaut
+    await supabase.from('lots').insert([
+      {
+        lieu_id: newLieu.id,
+        nom: 'Pièce Pilou',
+        description: 'Une boisson 33cl au choix parmi les produits éligibles, avec alternative sans alcool',
+        valeur_euros: 2.00,
+        stock_initial: 20, stock_restant: 20, seuil_alerte: 10,
+        poids: 20, actif: true,
+      },
+      {
+        lieu_id: newLieu.id,
+        nom: 'Visite Brasserie du Comté',
+        description: 'Visite exclusive de la Brasserie du Comté à Gilette',
+        valeur_euros: 30.00,
+        stock_initial: 50, stock_restant: 50, seuil_alerte: 20,
+        poids: 80, actif: true,
+      },
+    ])
     setNvNom(''); setNvEmail(''); setNvTaux('25'); setFormOuvert(false)
     chargerTout()
   }

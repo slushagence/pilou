@@ -76,7 +76,7 @@ export default function EtablissementAcces() {
     if (filtreNewsletter) requete = requete.eq('newsletter_etablissement', true)
     const [{ data: partiesData }, { data: lotsData }] = await Promise.all([
       requete,
-      supabase.from('lots').select('nom, valeur_euros, stock_restant, stock_initial, poids, actif').eq('lieu_id', lieu.id).order('created_at'),
+      supabase.from('lots').select('nom, valeur_euros, stock_restant, stock_initial, poids, actif, seuil_alerte').eq('lieu_id', lieu.id).order('created_at'),
     ])
     setParties(partiesData ?? [])
     setLots(lotsData ?? [])
@@ -310,19 +310,30 @@ export default function EtablissementAcces() {
         {/* ── Lots en lecture seule ── */}
         {lots.length > 0 && (
           <section className="mt-8">
-            <h2 className="titre text-lg font-bold text-pilou-rouge mb-3">Vos lots</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="titre text-lg font-bold text-pilou-rouge">Vos lots</h2>
+              <p className="text-sm opacity-60">
+                Taux de gain : <strong>{Math.round(lieu.taux_de_gain * 100)}%</strong>
+              </p>
+            </div>
             <div className="rounded bg-white/70 shadow-sm overflow-hidden">
               {lots.map((lot, i) => {
                 const totalPoids = lots.filter((l) => l.actif && l.stock_restant > 0).reduce((s, l) => s + l.poids, 0)
                 const pct = totalPoids > 0 ? Math.round((lot.poids / totalPoids) * 100) : 0
+                const proba = totalPoids > 0 && lot.stock_restant > 0 && lot.actif
+                  ? lieu.taux_de_gain * (lot.poids / totalPoids) : 0
+                const chanceSur = proba > 0 ? Math.round(1 / proba) : null
                 return (
                   <div key={i} className={`flex items-center justify-between px-4 py-3 text-sm ${i > 0 ? 'border-t border-pilou-creme-fonce' : ''}`}>
                     <div>
                       <p className={`font-semibold ${!lot.actif ? 'line-through opacity-40' : ''}`}>{lot.nom}</p>
-                      <p className="text-xs opacity-60">{Number(lot.valeur_euros).toFixed(2).replace('.', ',')} € · {pct}% des gains</p>
+                      <p className="text-xs opacity-60">
+                        {Number(lot.valeur_euros).toFixed(2).replace('.', ',')} € · {pct}% des gains
+                        {chanceSur && ` · ≈ 1 chance sur ${chanceSur.toLocaleString('fr-FR')}`}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className={`titre font-bold ${lot.stock_restant === 0 ? 'text-pilou-rouge' : lot.stock_restant <= 5 ? 'text-pilou-or' : ''}`}>
+                      <p className={`titre font-bold ${lot.stock_restant === 0 ? 'text-pilou-rouge' : lot.stock_restant <= lot.seuil_alerte ? 'text-pilou-or' : ''}`}>
                         {lot.stock_restant} / {lot.stock_initial}
                       </p>
                       <p className="text-xs opacity-50">en stock</p>
@@ -338,7 +349,7 @@ export default function EtablissementAcces() {
         <section className="mt-8 mb-6 rounded bg-pilou-creme border border-pilou-creme-fonce p-4 text-center">
           <p className="text-sm font-semibold mb-2">Un problème ou une question ?</p>
           <a
-            href="mailto:pilou@brasserieducomte.fr?subject=Aide%20PILOU%20-%20{lieu.nom}"
+            href={`mailto:pilou@brasserieducomte.fr?subject=Aide%20PILOU%20-%20${encodeURIComponent(lieu.nom)}`}
             className="titre inline-block rounded bg-pilou-rouge px-6 py-2.5 text-sm font-bold text-pilou-creme hover:bg-pilou-rouge-fonce"
           >
             📩 Nous contacter

@@ -99,9 +99,9 @@ export default function Jeu() {
           className="mt-6 w-20 object-contain opacity-80"
           draggable="false" />
 
-        <a href="https://www.lapilou.fr" target="_blank" rel="noopener noreferrer"
+        <a href="https://🍺 Tout savoir sur la Pilou → lapilou.fr" target="_blank" rel="noopener noreferrer"
           className="mt-2 text-sm font-semibold text-pilou-creme underline hover:opacity-80">
-          www.lapilou.fr
+          🍺 Tout savoir sur la Pilou → lapilou.fr
         </a>
       </div>
     </main>

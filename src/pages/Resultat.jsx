@@ -85,12 +85,12 @@ export default function Resultat() {
           draggable="false" />
 
         <a
-          href="https://www.lapilou.fr"
+          href="https://🍺 Tout savoir sur la Pilou → lapilou.fr"
           target="_blank"
           rel="noopener noreferrer"
           className="mt-3 text-sm font-semibold text-pilou-creme underline hover:opacity-80"
         >
-          www.lapilou.fr
+          🍺 Tout savoir sur la Pilou → lapilou.fr
         </a>
       </div>
     </main>

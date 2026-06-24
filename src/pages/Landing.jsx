@@ -38,12 +38,12 @@ export default function Landing() {
       </p>
 
       <a
-        href="https://www.lapilou.fr"
+        href="https://🍺 Tout savoir sur la Pilou → lapilou.fr"
         target="_blank"
         rel="noopener noreferrer"
         className="mt-3 text-sm font-semibold text-pilou-rouge underline hover:opacity-80"
       >
-        www.lapilou.fr
+        🍺 Tout savoir sur la Pilou → lapilou.fr
       </a>
     </main>
   )
