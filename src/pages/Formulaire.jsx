@@ -257,12 +257,12 @@ export default function Formulaire() {
           draggable="false" />
 
         <a
-          href="https://🍺 Tout savoir sur la Pilou → lapilou.fr"
+          href="https://www.lapilou.fr"
           target="_blank"
           rel="noopener noreferrer"
           className="mt-4 block text-center text-sm font-semibold text-pilou-rouge underline hover:opacity-80"
         >
-          🍺 Tout savoir sur la Pilou → lapilou.fr
+          <><i>Qu'es la Pilou ?</i> Visitez notre site pour en savoir plus !</>
         </a>
       </div>
     </main>

@@ -34,11 +34,12 @@ export default function Reglement() {
       .then(({ data }) => setLieux(data ?? []))
     supabase.from('v_lots').select('nom, description, valeur_euros')
       .then(({ data }) => {
-        // Dédoublonne les lots identiques proposés par plusieurs établissements
+        // Afficher uniquement les lots BDC communs à tous les établissements
+        const lotsBDC = ['Pièce Pilou', 'Visite Brasserie du Comté']
         const uniques = new Map()
         for (const lot of data ?? []) {
           const cle = `${lot.nom}|${lot.valeur_euros}`
-          if (!uniques.has(cle)) uniques.set(cle, lot)
+          if (lotsBDC.includes(lot.nom) && !uniques.has(cle)) uniques.set(cle, lot)
         }
         setLots([...uniques.values()].sort((a, b) => b.valeur_euros - a.valeur_euros))
       })
@@ -290,9 +291,13 @@ export default function Reglement() {
           l'Organisateur.
         </p>
         <p className="mt-2">
+          Des lots complémentaires peuvent être proposés par certains établissements participants.
+          La liste des lots disponibles pour chaque établissement est consultable directement
+          sur la page de jeu, après sélection de l'établissement concerné.
+        </p>
+        <p className="mt-2">
           L'Organisateur se réserve le droit de modifier le contenu des lots au cours de la
-          période à condition d'avoir une valorisation équivalente ou supérieure. Les lots
-          proposés peuvent varier selon les établissements participants.
+          période à condition d'avoir une valorisation équivalente ou supérieure.
         </p>
 
         <p className="mt-4"><strong>6.2. Modalités de remise</strong></p>
