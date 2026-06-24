@@ -3,7 +3,7 @@ INSERT INTO lots (lieu_id, nom, description, valeur_euros, stock_initial, stock_
 SELECT 
   l.id,
   'Pièce Pilou',
-  'Une boisson 33cl au choix parmi les produits éligibles, avec alternative sans alcool',
+  'La célèbre pièce de pilou, symbole du jeu niçois !',
   2.00,
   20, 20, 10,
   20,
