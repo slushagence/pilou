@@ -43,7 +43,7 @@ export default function Landing() {
         rel="noopener noreferrer"
         className="mt-4 text-base font-bold text-pilou-rouge uppercase underline hover:opacity-80"
       >
-        <><i>Qu'es la Pilou ?</i> Visitez notre site pour en savoir plus !</>
+        🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
       </a>
     </main>
   )
