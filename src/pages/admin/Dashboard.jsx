@@ -184,7 +184,7 @@ export default function Dashboard() {
       {
         lieu_id: newLieu.id,
         nom: 'Pièce Pilou',
-        description: 'La célèbre pièce de pilou, symbole du jeu niçois !
+        description: 'La célèbre pièce de pilou, symbole du jeu niçois !',
         valeur_euros: 2.00,
         stock_initial: 20, stock_restant: 20, seuil_alerte: 10,
         poids: 20, actif: true,
