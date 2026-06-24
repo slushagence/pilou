@@ -41,7 +41,7 @@ export default function Landing() {
         href="https://www.lapilou.fr"
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 text-base font-bold text-pilou-rouge uppercase underline hover:opacity-80"
+        className="mt-4 text-base font-bold text-pilou-rouge uppercase underline hover:opacity-80 text-center block"
       >
         🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
       </a>
