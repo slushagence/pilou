@@ -180,7 +180,7 @@ export default function FicheRestaurant() {
     // On sauvegarde d'abord les réglages
     await enregistrerReglages()
     // Puis on envoie le mail via l'edge function
-    const { error } = await supabase.functions.invoke('emails-pilou', {
+    const { error } = await supabase.functions.invoke('quick-task', {
       body: {
         type: 'identifiants',
         email: emailContact.trim(),
