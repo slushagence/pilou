@@ -223,15 +223,66 @@ Deno.serve(async (req) => {
     const baseUrl = Deno.env.get('APP_URL') ?? 'https://pilou-roan.vercel.app'
     const url = `${baseUrl}/etablissement/${slug}`
     const html = `
-    <div style="font-family:Arial,sans-serif;color:#2b1e16;max-width:480px">
-      <h2 style="color:#a32018;margin:0 0 16px">🪙 Accès à votre espace PILOU</h2>
-      <p>Bonjour,</p>
-      <p>Voici vos identifiants pour accéder à votre espace établissement <strong>${nom} — ${ville}</strong> :</p>
-      <p><strong>URL :</strong><br><a href="${url}" style="color:#a32018">${url}</a></p>
-      <p style="margin:16px 0 4px"><strong>Code d'accès :</strong></p>
-      <p style="font-size:24px;font-weight:bold;letter-spacing:4px;color:#2b1e16">${code_acces}</p>
-      <p style="font-size:13px;color:#777">En cas de problème, contactez-nous à <a href="mailto:${EMAIL_BRASSERIE}" style="color:#a32018">${EMAIL_BRASSERIE}</a>.</p>
-    </div>`
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f2e8d5;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f2e8d5;">
+    <tr><td align="center" style="padding:32px 16px;">
+      <table width="100%" style="max-width:420px;" cellpadding="0" cellspacing="0">
+
+        <!-- Logo Pilou -->
+        <tr><td align="center" style="padding-bottom:20px;">
+          <img src="https://ojkvliarxbhoknlliriv.supabase.co/storage/v1/object/public/pilou-assets/logo-pilou.png" alt="Pilou Nissa" height="55" style="display:block;margin:0 auto;">
+        </td></tr>
+
+        <!-- Titre -->
+        <tr><td align="center" style="padding-bottom:20px;">
+          <p style="margin:0;color:#a32018;font-size:16px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">
+            Votre espace établissement
+          </p>
+          <p style="margin:6px 0 0;color:#2b1e16;font-size:13px;opacity:0.8;">
+            ${nom} — ${ville}
+          </p>
+        </td></tr>
+
+        <!-- Bloc accès -->
+        <tr><td style="padding-bottom:20px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:6px;border:1px solid #d9c9b0;">
+            <tr><td align="center" style="padding:20px;">
+              <p style="margin:0 0 4px;color:#2b1e16;font-size:11px;opacity:0.6;text-transform:uppercase;letter-spacing:1px;">URL d'accès</p>
+              <a href="${url}" style="color:#a32018;font-size:12px;word-break:break-all;">${url}</a>
+              <hr style="border:none;border-top:1px solid #f2e8d5;margin:16px 0;">
+              <p style="margin:0 0 4px;color:#2b1e16;font-size:11px;opacity:0.6;text-transform:uppercase;letter-spacing:1px;">Code d'accès</p>
+              <p style="margin:0;font-size:26px;font-weight:bold;letter-spacing:6px;color:#a32018;">${code_acces}</p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Info -->
+        <tr><td align="center" style="padding-bottom:24px;">
+          <p style="margin:0;color:#2b1e16;font-size:12px;line-height:1.6;opacity:0.7;text-align:center;">
+            En cas de problème : <a href="mailto:${EMAIL_BRASSERIE}" style="color:#a32018;">${EMAIL_BRASSERIE}</a>
+          </p>
+        </td></tr>
+
+        <!-- Logo BDC -->
+        <tr><td align="center" style="padding-bottom:12px;">
+          <img src="https://ojkvliarxbhoknlliriv.supabase.co/storage/v1/object/public/pilou-assets/logo-bdc.png" alt="Brasserie du Comté" width="60" style="display:block;margin:0 auto;opacity:0.7;">
+        </td></tr>
+
+        <!-- Mention légale -->
+        <tr><td align="center">
+          <p style="margin:0;color:#2b1e16;font-size:10px;opacity:0.4;text-align:center;">
+            L'abus d'alcool est dangereux pour la santé. À consommer avec modération.
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
     const ok = await envoyerEmail(email, `🪙 Vos accès PILOU — ${nom}`, html)
     return new Response(JSON.stringify({ ok }), {
       headers: {

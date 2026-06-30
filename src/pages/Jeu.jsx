@@ -68,6 +68,11 @@ export default function Jeu() {
         <h1 className="titre mt-6 text-4xl font-bold">À toi de jouer !</h1>
         <p className="titre mt-1 text-lg text-pilou-or">Tente ta chance</p>
         <p className="mt-2 text-sm opacity-80">{lieu.nom} — {lieu.ville}</p>
+        {lieu.taux_de_gain && (
+          <p className="mt-1 text-xs opacity-60">
+            1 chance sur {Math.round(1 / lieu.taux_de_gain).toLocaleString('fr-FR')} de gagner
+          </p>
+        )}
 
         <div className={`my-8 ${faceFinale ? 'piece-atterrissage' : ''}`}>
           <PiecePilou face={faceFinale ?? 'piece'} enRotation={enRotation} />

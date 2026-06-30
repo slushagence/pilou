@@ -28,7 +28,7 @@ export default function Formulaire() {
   useEffect(() => {
     supabase
       .from('v_lieux')
-      .select('id, nom, ville')
+      .select('id, nom, ville, taux_de_gain')
       .order('nom')
       .then(({ data, error }) => {
         if (error) setErreurChargement(true)
