@@ -7,7 +7,7 @@ import LogoPilou from '../components/LogoPilou'
 const CONFIG = {
   dateDebut: '1er juin 2026',
   dateFin: '31 décembre 2026',
-  urlJeu: 'https://www.lapilou.fr',
+  urlJeu: 'https://jeu.lapilou.fr',
   produitsEligibles: ['Bière La Pilou', 'Tous les sodas de la Brasserie du Comté'],
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -165,7 +165,7 @@ export default function Reglement() {
           <strong>Participation en ligne :</strong> les participants doivent scanner le QR
           code à l'aide d'un appareil électronique compatible afin d'accéder à la page du
           jeu, hébergée à l'URL suivante :{' '}
-          {CONFIG.urlJeu ?? <ACompleter>[URL définitive du jeu]</ACompleter>}, et renseigner
+          {CONFIG.urlJeu}/jouer, et renseigner
           leurs nom, prénom, adresse e-mail, numéro de téléphone portable et sélectionner le
           nom de l'établissement dans lequel la boisson a été consommée.
         </p>

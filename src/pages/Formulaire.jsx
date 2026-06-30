@@ -24,6 +24,7 @@ export default function Formulaire() {
   const [newsletterBrasserie, setNewsletterBrasserie] = useState(false)
   const [newsletterEtablissement, setNewsletterEtablissement] = useState(false)
   const [erreurs, setErreurs] = useState({})
+  const [siteWeb, setSiteWeb] = useState('') // honeypot — champ piège pour les bots, doit rester vide
   const zoneAutocomplete = useRef(null)
 
   useEffect(() => {
@@ -76,6 +77,8 @@ export default function Formulaire() {
   }
 
   function lancerLeJeu() {
+    // Honeypot : si ce champ caché est rempli, c'est un bot — on bloque silencieusement
+    if (siteWeb.trim() !== '') return
     if (!valider()) return
     navigate('/jeu', {
       state: {
@@ -257,6 +260,19 @@ export default function Formulaire() {
             promotionnelle par la Brasserie du Comté
           </span>
         </label>
+
+        {/* Honeypot anti-bot — invisible pour les humains, attractif pour les bots */}
+        <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
+          <label htmlFor="siteWeb">Site web</label>
+          <input
+            id="siteWeb"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={siteWeb}
+            onChange={(e) => setSiteWeb(e.target.value)}
+          />
+        </div>
 
         <button
           type="button"

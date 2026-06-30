@@ -235,7 +235,7 @@ Deno.serve(async (req) => {
   // ── Identifiants établissement (appelé depuis l'admin, pas de secret requis)
   if (payload.type === 'identifiants') {
     const { email, nom, ville, slug, code_acces } = payload
-    const baseUrl = Deno.env.get('APP_URL') ?? 'https://pilou-roan.vercel.app'
+    const baseUrl = Deno.env.get('APP_URL') ?? 'https://jeu.lapilou.fr'
     const url = `${baseUrl}/etablissement/${slug}`
     const html = `
 <!DOCTYPE html>
