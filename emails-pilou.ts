@@ -48,6 +48,25 @@ function emailGagnant(partie, lieu) {
   const date = new Date(partie.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Paris' })
   const nomLieu = lieu ? `${lieu.nom} — ${lieu.ville}` : 'ton lieu'
   const baseUrl = 'https://ojkvliarxbhoknlliriv.supabase.co/storage/v1/object/public/pilou-assets'
+  const estVisite = estLotVisiteBrasserie(partie.lot_nom)
+
+  const instructionsHtml = estVisite ? `
+            PRÉSENTE-TOI AU BAR<br>
+            <span style="color:#e3a72f;">AUJOURD'HUI, AVANT LA FERMETURE</span><br>
+            POUR FAIRE VALIDER TON GAIN
+          </p>
+        </td></tr>
+        <tr><td align="center" style="padding-bottom:16px;">
+          <p style="margin:0;color:#ffffff;font-size:13px;line-height:1.6;max-width:340px;margin:0 auto;">
+            La Brasserie du Comté te contactera dans un délai de <strong>15 jours</strong>
+            pour convenir d'une date de visite. Tu disposes d'un délai de
+            <strong>6 mois</strong> à compter de ce jour pour réaliser ta visite.
+          </p>` : `
+            PRÉSENTE-TOI AU BAR<br>
+            <span style="color:#e3a72f;">AUJOURD'HUI, AVANT LA FERMETURE</span><br>
+            POUR REMPORTER TON GAIN
+          </p>`
+
   return `
 <!DOCTYPE html>
 <html>
@@ -90,11 +109,7 @@ function emailGagnant(partie, lieu) {
 
         <!-- Instructions -->
         <tr><td align="center" style="padding-bottom:16px;">
-          <p style="margin:0;color:#ffffff;font-size:15px;font-weight:bold;text-transform:uppercase;line-height:1.8;">
-            PRÉSENTE CE RÉSULTAT AU BAR<br>
-            <span style="color:#e3a72f;">AUJOURD'HUI, AVANT LA FERMETURE</span><br>
-            POUR REMPORTER TON GAIN
-          </p>
+          <p style="margin:0;color:#ffffff;font-size:15px;font-weight:bold;text-transform:uppercase;line-height:1.8;">${instructionsHtml}
         </td></tr>
 
         <!-- Code de retrait -->

@@ -8,7 +8,7 @@ const CONFIG = {
   dateDebut: '1er juin 2026',
   dateFin: '31 décembre 2026',
   urlJeu: 'https://www.lapilou.fr',
-  produitsEligibles: ['Bière PILOU', 'Soft Brasserie du Comté'],
+  produitsEligibles: ['Bière La Pilou', 'Tous les sodas de la Brasserie du Comté'],
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -131,8 +131,13 @@ export default function Reglement() {
         <p className="mt-2"><strong>Produits éligibles :</strong></p>
         <p>
           Sont considérés comme produits éligibles au Jeu les produits suivants de
-          l'Organisateur : {CONFIG.produitsEligibles.join(', ')}
-          {' '}<ACompleter>[autres produits éligibles à confirmer]</ACompleter>.
+          l'Organisateur : {CONFIG.produitsEligibles.join(', ')}.
+        </p>
+        <p className="mt-2 font-bold uppercase">
+          Important : le jeu n'est pas réservé à la consommation d'une boisson alcoolisée.
+          La participation au jeu est également ouverte à l'occasion de la consommation
+          d'une boisson sans alcool de l'organisateur, lorsque celle-ci est distribuée par
+          l'établissement participant concerné.
         </p>
         <p className="mt-2">
           L'Organisateur se réserve la possibilité de compléter ou modifier la liste des
@@ -143,17 +148,13 @@ export default function Reglement() {
         </p>
 
         <p className="mt-2">
-          <strong>Établissements participants :</strong>
+          <strong>Établissements participants :</strong> la liste à jour des établissements
+          participants est consultable à l'adresse suivante :{' '}
+          <a href="/etablissements" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
+            jeu.lapilou.fr/etablissements
+          </a>. Cette page est mise à jour automatiquement à chaque ajout ou retrait
+          d'un établissement participant.
         </p>
-        {lieux.length > 0 ? (
-          <ul className="mt-1 list-disc pl-6">
-            {lieux.map((r, i) => (
-              <li key={i}>{r.nom} — {r.ville}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="opacity-60">Chargement de la liste des établissements...</p>
-        )}
 
         <p className="mt-2">
           <strong>Sous-bock :</strong> les sous-bocks Jeu contiennent un QR code permettant

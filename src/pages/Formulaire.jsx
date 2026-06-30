@@ -18,6 +18,7 @@ export default function Formulaire() {
   const [nom, setNom] = useState('')
   const [email, setEmail] = useState('')
   const [telephone, setTelephone] = useState('')
+  const [codePostal, setCodePostal] = useState('')
   const [majeurEtReglement, setMajeurEtReglement] = useState(false)
   const [consentementPromo, setConsentementPromo] = useState(false)
   const [newsletterBrasserie, setNewsletterBrasserie] = useState(false)
@@ -67,6 +68,8 @@ export default function Formulaire() {
     if (!prenom.trim()) e.prenom = 'Ton prénom est requis.'
     if (!nom.trim()) e.nom = 'Ton nom est requis.'
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) e.email = 'Email invalide.'
+    if (!/^[0-9+\s.-]{6,}$/.test(telephone.trim())) e.telephone = 'Numéro de téléphone requis.'
+    if (!/^[0-9]{5}$/.test(codePostal.trim())) e.codePostal = 'Code postal invalide (5 chiffres).'
     if (!majeurEtReglement) e.majeur = 'Tu dois être majeur et accepter le règlement.'
     setErreurs(e)
     return Object.keys(e).length === 0
@@ -82,6 +85,7 @@ export default function Formulaire() {
           nom: nom.trim(),
           email: email.trim(),
           telephone: telephone.trim(),
+          codePostal: codePostal.trim(),
           newsletterBrasserie,
           newsletterEtablissement,
           consentementPromo,
@@ -183,9 +187,21 @@ export default function Formulaire() {
         </div>
 
         <div className="mt-5">
-          <label htmlFor="telephone" className="titre text-sm font-bold">Téléphone</label>
+          <label htmlFor="telephone" className="titre text-sm font-bold">
+            Téléphone <span className="text-pilou-rouge">*</span>
+          </label>
           <input id="telephone" type="tel" className={`${styleChamp} mt-1`} placeholder="06 12 34 56 78"
             value={telephone} onChange={(e) => setTelephone(e.target.value)} autoComplete="tel" />
+          {erreurs.telephone && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.telephone}</p>}
+        </div>
+
+        <div className="mt-5">
+          <label htmlFor="codePostal" className="titre text-sm font-bold">
+            Code postal <span className="text-pilou-rouge">*</span>
+          </label>
+          <input id="codePostal" type="text" inputMode="numeric" className={`${styleChamp} mt-1`} placeholder="06000"
+            value={codePostal} onChange={(e) => setCodePostal(e.target.value)} autoComplete="postal-code" maxLength={5} />
+          {erreurs.codePostal && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.codePostal}</p>}
         </div>
 
         {/* ── Majorité + règlement ── */}
