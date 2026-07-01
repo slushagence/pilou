@@ -51,12 +51,48 @@ export default function Dashboard() {
   const [importMessage, setImportMessage] = useState('')
   const inputFichier = useRef(null)
 
-  // Recherche établissements
+  // Recherche et filtres établissements
   const [rechercheLieux, setRechercheLieux] = useState('')
+  const [filtreStatut, setFiltreStatut] = useState('tous') // 'tous' | 'actifs' | 'inactifs'
+
+  // Sélection multiple
+  const [selectionIds, setSelectionIds] = useState(new Set())
+
+  function toggleSelection(id) {
+    setSelectionIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function toggleTout(lieuxFiltres) {
+    if (selectionIds.size === lieuxFiltres.length) {
+      setSelectionIds(new Set())
+    } else {
+      setSelectionIds(new Set(lieuxFiltres.map(l => l.id)))
+    }
+  }
+
+  async function actionGroupee(actif) {
+    if (selectionIds.size === 0) return
+    if (!window.confirm(`${actif ? 'Activer' : 'Désactiver'} les ${selectionIds.size} établissement(s) sélectionné(s) ?`)) return
+    await supabase.from('lieux').update({ actif }).in('id', [...selectionIds])
+    setSelectionIds(new Set())
+    chargerTout()
+  }
 
   function exporterLieux() {
+    const lieuxExport = lieux.filter((lieu) => {
+      const q = rechercheLieux.trim().toLowerCase()
+      const matchRecherche = !q || `${lieu.nom} ${lieu.ville}`.toLowerCase().includes(q)
+      const matchStatut = filtreStatut === 'tous' ||
+        (filtreStatut === 'actifs' && lieu.actif) ||
+        (filtreStatut === 'inactifs' && !lieu.actif)
+      return matchRecherche && matchStatut
+    })
     const lignes = [['nom', 'ville', 'email_contact', 'telephone', 'contact', 'taux_de_gain_%', 'code_acces']]
-    for (const lieu of lieux) {
+    for (const lieu of lieuxExport) {
       lignes.push([
         lieu.nom,
         lieu.ville,
@@ -325,14 +361,41 @@ export default function Dashboard() {
           </p>
         )}
 
-        {/* Recherche établissements */}
-        <input
-          type="search"
-          placeholder="🔍 Rechercher un établissement (nom, ville...)"
-          value={rechercheLieux}
-          onChange={(e) => setRechercheLieux(e.target.value)}
-          className="mt-3 w-full rounded border border-pilou-creme-fonce bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-pilou-rouge"
-        />
+        {/* Recherche + filtre statut */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <input
+            type="search"
+            placeholder="🔍 Rechercher (nom, ville...)"
+            value={rechercheLieux}
+            onChange={(e) => setRechercheLieux(e.target.value)}
+            className="flex-1 rounded border border-pilou-creme-fonce bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-pilou-rouge"
+          />
+          <select value={filtreStatut} onChange={(e) => setFiltreStatut(e.target.value)}
+            className="rounded border border-pilou-creme-fonce bg-white px-3 py-2 text-sm">
+            <option value="tous">Tous</option>
+            <option value="actifs">Actifs</option>
+            <option value="inactifs">Inactifs</option>
+          </select>
+        </div>
+
+        {/* Actions groupées */}
+        {selectionIds.size > 0 && (
+          <div className="mt-2 flex items-center gap-3 rounded bg-pilou-creme px-3 py-2 text-sm">
+            <span className="font-semibold">{selectionIds.size} sélectionné(s)</span>
+            <button type="button" onClick={() => actionGroupee(true)}
+              className="rounded bg-green-600 px-3 py-1 text-xs font-bold text-white hover:bg-green-700">
+              ✅ Activer
+            </button>
+            <button type="button" onClick={() => actionGroupee(false)}
+              className="rounded bg-pilou-rouge px-3 py-1 text-xs font-bold text-pilou-creme hover:bg-pilou-rouge-fonce">
+              🚫 Désactiver
+            </button>
+            <button type="button" onClick={() => setSelectionIds(new Set())}
+              className="ml-auto text-xs opacity-60 hover:opacity-100">
+              Annuler
+            </button>
+          </div>
+        )}
 
         {formOuvert && (
           <section className="mt-3 rounded bg-white/70 p-4 shadow-sm">
@@ -361,44 +424,67 @@ export default function Dashboard() {
           </section>
         )}
 
-        <ul className="mt-3 space-y-3">
-          {lieux
-            .filter((lieu) => {
-              const q = rechercheLieux.trim().toLowerCase()
-              if (!q) return true
-              return `${lieu.nom} ${lieu.ville}`.toLowerCase().includes(q)
-            })
-            .map((lieu) => {
-            const lotsduLieu = lots.filter((l) => l.lieu_id === lieu.id)
-            const lotsActifs = lotsduLieu.filter((l) => l.actif && l.stock_restant > 0).length
-            const enAlerte = lotsduLieu.some((l) => l.actif && l.stock_restant <= l.seuil_alerte)
-            const partiesLieu = partiesPeriode.filter((p) => p.lieu_id === lieu.id).length
-            return (
-              <li key={lieu.id}>
-                <Link to={`lieu/${lieu.id}`}
-                  className="block rounded bg-white/70 p-4 shadow-sm transition hover:bg-white">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className={`titre font-bold ${lieu.actif ? '' : 'line-through opacity-50'}`}>
-                        {lieu.nom} <span className="font-normal opacity-60">— {lieu.ville}</span>
-                      </p>
-                      <p className="text-xs opacity-60">
-                        Taux : {Math.round(lieu.taux_de_gain * 100)}% · {lotsActifs} lot{lotsActifs > 1 ? 's' : ''} disponible{lotsActifs > 1 ? 's' : ''}
-                        {!lieu.actif && ' · INACTIF'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      {enAlerte && <span className="text-pilou-or">🟠 stock bas</span>}
-                      {lotsActifs === 0 && <span className="text-pilou-rouge">🔴 aucun lot</span>}
-                      <span className="opacity-60">{partiesLieu} partie{partiesLieu > 1 ? 's' : ''} {periodeLibelle}</span>
-                      <span className="titre font-bold text-pilou-rouge">›</span>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+        {(() => {
+          const lieuxFiltres = lieux.filter((lieu) => {
+            const q = rechercheLieux.trim().toLowerCase()
+            const matchRecherche = !q || `${lieu.nom} ${lieu.ville}`.toLowerCase().includes(q)
+            const matchStatut = filtreStatut === 'tous' ||
+              (filtreStatut === 'actifs' && lieu.actif) ||
+              (filtreStatut === 'inactifs' && !lieu.actif)
+            return matchRecherche && matchStatut
+          })
+          return (
+            <>
+              {lieuxFiltres.length > 0 && (
+                <div className="mt-2 flex items-center gap-2 text-xs opacity-60 px-1">
+                  <input type="checkbox"
+                    checked={selectionIds.size === lieuxFiltres.length && lieuxFiltres.length > 0}
+                    onChange={() => toggleTout(lieuxFiltres)}
+                    className="accent-pilou-rouge h-4 w-4"
+                  />
+                  <span>Tout sélectionner ({lieuxFiltres.length})</span>
+                </div>
+              )}
+              <ul className="mt-2 space-y-3">
+                {lieuxFiltres.map((lieu) => {
+                  const lotsduLieu = lots.filter((l) => l.lieu_id === lieu.id)
+                  const lotsActifs = lotsduLieu.filter((l) => l.actif && l.stock_restant > 0).length
+                  const enAlerte = lotsduLieu.some((l) => l.actif && l.stock_restant <= l.seuil_alerte)
+                  const partiesLieu = partiesPeriode.filter((p) => p.lieu_id === lieu.id).length
+                  return (
+                    <li key={lieu.id} className="flex items-center gap-2">
+                      <input type="checkbox"
+                        checked={selectionIds.has(lieu.id)}
+                        onChange={() => toggleSelection(lieu.id)}
+                        className="accent-pilou-rouge h-4 w-4 flex-shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <Link to={`lieu/${lieu.id}`} className="flex-1 block rounded bg-white/70 p-4 shadow-sm transition hover:bg-white">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <p className={`titre font-bold ${lieu.actif ? '' : 'line-through opacity-50'}`}>
+                              {lieu.nom} <span className="font-normal opacity-60">— {lieu.ville}</span>
+                            </p>
+                            <p className="text-xs opacity-60">
+                              Taux : {Math.round(lieu.taux_de_gain * 100)}% · {lotsActifs} lot{lotsActifs > 1 ? 's' : ''} disponible{lotsActifs > 1 ? 's' : ''}
+                              {!lieu.actif && ' · INACTIF'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            {enAlerte && <span className="text-pilou-or">🟠 stock bas</span>}
+                            {lotsActifs === 0 && <span className="text-pilou-rouge">🔴 aucun lot</span>}
+                            <span className="opacity-60">{partiesLieu} partie{partiesLieu > 1 ? 's' : ''} {periodeLibelle}</span>
+                            <span className="titre font-bold text-pilou-rouge">›</span>
+                          </div>
+                        </div>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
+          )
+        })()}
 
         <h2 className="titre mt-10 text-lg font-bold text-pilou-rouge">Dernières alertes</h2>
         {alertes.length === 0 && !chargement && (
