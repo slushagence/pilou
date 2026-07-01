@@ -224,6 +224,21 @@ export default function FicheRestaurant() {
     charger()
   }
 
+  async function supprimerEtablissement() {
+    if (!window.confirm(
+      `Supprimer définitivement « ${lieu.nom} » ?\n\nTous les lots seront supprimés.\nLes parties jouées sont conservées dans l'historique.`
+    )) return
+    // Supprimer les lots d'abord
+    await supabase.from('lots').delete().eq('lieu_id', id)
+    // Puis supprimer le lieu
+    const { error } = await supabase.from('lieux').delete().eq('id', id)
+    if (error) {
+      setMessageErreur('Suppression impossible. Des parties sont liées à cet établissement.')
+    } else {
+      navigate('/admin')
+    }
+  }
+
   function exporterPDF() {
     const doc = new jsPDF()
     const dateGen = new Date().toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
@@ -392,6 +407,10 @@ export default function FicheRestaurant() {
                 lieu.actif ? 'border-pilou-creme-fonce bg-white/70 hover:bg-white'
                 : 'border-pilou-rouge bg-pilou-rouge text-pilou-creme'}`}>
               {lieu.actif ? 'Désactiver l\u2019établissement' : 'Réactiver l\u2019établissement'}
+            </button>
+            <button type="button" onClick={supprimerEtablissement}
+              className="rounded border border-pilou-rouge px-3 py-1.5 text-sm text-pilou-rouge hover:bg-pilou-rouge hover:text-pilou-creme">
+              🗑 Supprimer
             </button>
           </div>
         </header>
