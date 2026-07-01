@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../supabase'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -126,6 +126,7 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
 
 export default function FicheRestaurant() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [lieu, setLieu] = useState(null)
   const [lots, setLots] = useState([])
   const [messageErreur, setMessageErreur] = useState(null)
