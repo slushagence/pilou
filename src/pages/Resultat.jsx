@@ -1,14 +1,68 @@
+import { useState } from 'react'
 import { useLocation, Navigate, Link } from 'react-router-dom'
 import LogoPilou from '../components/LogoPilou'
 import PiecePilou from '../components/PiecePilou'
+import SliderRetrait from '../components/SliderRetrait'
 import enfant from '../assets/pilou/pilou-enfant.webp'
 import logoBDC from '../assets/pilou/logo-bdc_blanc.png'
 
 export default function Resultat() {
   const { state } = useLocation()
+  const [retire, setRetire] = useState(false)
   if (!state?.reponse) return <Navigate to="/" replace />
   const { reponse, lieu } = state
   const gagne = reponse.resultat === 'gagne'
+
+  // ── Écran "lot remis" : remplace l'écran gagnant après le slide du barman ──
+  if (retire) {
+    return (
+      <main className="fond-rouge min-h-screen px-6 py-10 text-pilou-creme">
+        <div className="mx-auto flex max-w-md flex-col items-center text-center">
+          <LogoPilou variante="blanc" hauteur={56} />
+
+          <p className="mt-10 text-6xl animate-bounce">🍻</p>
+
+          <h1 className="titre mt-4 text-4xl font-bold">
+            Lot remis !
+            <span className="block text-pilou-or">Santé {reponse.prenom} !</span>
+          </h1>
+
+          <p className="mt-6 titre text-lg font-bold">
+            Ce gain a été récupéré.
+          </p>
+          <p className="mt-2 text-sm opacity-80">
+            Cet écran ne peut plus être utilisé pour retirer un lot.
+          </p>
+
+          <div className="mt-8 w-full rounded bg-black/25 px-4 py-3 text-sm">
+            <p className="titre font-bold opacity-90">{reponse.lot}</p>
+            <p className="opacity-80">{reponse.prenom} {reponse.nom}</p>
+            <p className="opacity-80">{lieu?.nom} — {lieu?.ville}</p>
+            <p className="opacity-60 text-xs mt-1">code {reponse.code_retrait} · remis ✓</p>
+          </div>
+
+          <img src={enfant} alt="" draggable="false" className="mt-6 w-48 opacity-95" />
+
+          <Link to="/" className="mt-4 text-sm underline opacity-80 hover:opacity-100">
+            Retour à l'accueil
+          </Link>
+
+          <img src={logoBDC} alt="Brasserie du Comté"
+            className="mt-6 w-20 object-contain opacity-80"
+            draggable="false" />
+
+          <a
+            href="https://www.lapilou.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 text-base font-bold text-pilou-creme uppercase underline hover:opacity-80 text-center block"
+          >
+            🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
+          </a>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="fond-rouge min-h-screen px-6 py-10 text-pilou-creme">
@@ -43,9 +97,13 @@ export default function Resultat() {
               </span>
             </p>
             <p className="mt-1 text-xs opacity-70">
-              Tu vas aussi recevoir un email avec ton bon de retrait.
-              Une pièce d'identité pourra t'être demandée.
+              {/(visite|brasserie)/i.test(reponse.lot ?? '')
+                ? "Tu vas recevoir un email de confirmation. Une pièce d'identité pourra t'être demandée."
+                : "Une pièce d'identité pourra t'être demandée."}
             </p>
+
+            {/* Slider barman : marque le lot comme remis */}
+            <SliderRetrait codeRetrait={reponse.code_retrait} onRetire={() => setRetire(true)} />
           </>
         ) : (
           <>

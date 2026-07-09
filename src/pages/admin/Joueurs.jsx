@@ -49,6 +49,11 @@ export default function Joueurs() {
   const [filtreConsentement, setFiltreConsentement] = useState(false)
   const [recherche, setRecherche] = useState('')
 
+  // Autocomplete établissement (même ergonomie que le formulaire joueur)
+  const [rechercheEtab, setRechercheEtab] = useState('')
+  const [listeEtabOuverte, setListeEtabOuverte] = useState(false)
+  const [filtreStatut, setFiltreStatut] = useState('tous') // tous | actifs | inactifs
+
   async function charger() {
     setChargement(true)
     setMessageErreur(null)
@@ -66,7 +71,7 @@ export default function Joueurs() {
     if (filtreConsentement) requete = requete.eq('consentement_promo', true)
 
     const [r1, r2] = await Promise.all([
-      supabase.from('lieux').select('id, nom, ville').order('nom'),
+      supabase.from('lieux').select('id, nom, ville, actif').order('nom'),
       requete,
     ])
     if (r2.error) {
@@ -86,15 +91,24 @@ export default function Joueurs() {
     return (id) => m.get(id) ?? '?'
   }, [lieux])
 
-  // Recherche locale (email, nom, prénom, code)
+  // Lieux visibles selon le filtre statut (pour l'autocomplete et le filtrage des parties)
+  const lieuxParStatut = useMemo(() => {
+    if (filtreStatut === 'actifs') return lieux.filter((l) => l.actif)
+    if (filtreStatut === 'inactifs') return lieux.filter((l) => !l.actif)
+    return lieux
+  }, [lieux, filtreStatut])
+
+  // Recherche locale (email, nom, prénom, code) + statut du lieu
   const partiesFiltrees = useMemo(() => {
+    const idsVisibles = new Set(lieuxParStatut.map((l) => l.id))
+    let resultat = filtreStatut === 'tous' ? parties : parties.filter((p) => idsVisibles.has(p.lieu_id))
     const q = recherche.trim().toLowerCase()
-    if (!q) return parties
-    return parties.filter((p) =>
+    if (!q) return resultat
+    return resultat.filter((p) =>
       [p.email, p.prenom, p.nom, p.code_retrait]
         .some((champ) => champ && String(champ).toLowerCase().includes(q))
     )
-  }, [parties, recherche])
+  }, [parties, recherche, lieuxParStatut, filtreStatut])
 
   const pageMax = Math.max(1, Math.ceil(partiesFiltrees.length / PAR_PAGE))
   const pageAffichee = partiesFiltrees.slice((page - 1) * PAR_PAGE, page * PAR_PAGE)
@@ -102,7 +116,7 @@ export default function Joueurs() {
   function buildLignesParties() {
     const lignes = [[
       'Date', 'Heure', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Établissement',
-      'Résultat', 'Lot', 'Code retrait', 'Newsletter Brasserie', 'Newsletter Établissement',
+      'Résultat', 'Lot', 'Code retrait', 'Lot remis', 'Newsletter Brasserie', 'Newsletter Établissement',
     ]]
     for (const p of partiesFiltrees) {
       const d = new Date(p.created_at)
@@ -113,6 +127,7 @@ export default function Joueurs() {
         nomLieu(p.lieu_id),
         p.resultat === 'gagne' ? 'Gagné' : 'Perdu',
         p.lot_nom ?? '', p.code_retrait ?? '',
+        p.resultat === 'gagne' ? (p.retire ? 'Oui' : 'Non') : '',
         p.newsletter_brasserie ? 'Oui' : 'Non',
         p.newsletter_etablissement ? 'Oui' : 'Non',
       ])
@@ -202,16 +217,50 @@ export default function Joueurs() {
 
         {/* ── Filtres ── */}
         <section className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3 rounded bg-white/70 p-4 shadow-sm">
-          <label className={STYLE_FILTRE}>
+          <div className={`${STYLE_FILTRE} relative`}>
             Établissement
-            <select value={filtreResto} onChange={(e) => setFiltreResto(e.target.value)}
-              className="rounded border border-pilou-creme-fonce bg-white px-2 py-1.5">
+            <select value={filtreStatut} onChange={(e) => { setFiltreStatut(e.target.value); setFiltreResto('tous'); setRechercheEtab('') }}
+              className="rounded border border-pilou-creme-fonce bg-white px-2 py-1.5 text-xs">
               <option value="tous">Tous</option>
-              {lieux.map((l) => (
-                <option key={l.id} value={l.id}>{l.nom} — {l.ville}</option>
-              ))}
+              <option value="actifs">Actifs</option>
+              <option value="inactifs">Désactivés</option>
             </select>
-          </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Commence à taper le nom..."
+                value={rechercheEtab}
+                onChange={(e) => { setRechercheEtab(e.target.value); setListeEtabOuverte(true); if (!e.target.value.trim()) setFiltreResto('tous') }}
+                onFocus={() => setListeEtabOuverte(true)}
+                onBlur={() => setTimeout(() => setListeEtabOuverte(false), 150)}
+                className="rounded border border-pilou-creme-fonce bg-white px-2 py-1.5 w-56"
+              />
+              {filtreResto !== 'tous' && (
+                <button type="button"
+                  onClick={() => { setFiltreResto('tous'); setRechercheEtab('') }}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-xs opacity-50 hover:opacity-100">
+                  ✕
+                </button>
+              )}
+              {listeEtabOuverte && rechercheEtab.trim() && (
+                <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded border border-pilou-creme-fonce bg-white shadow-lg">
+                  {lieuxParStatut
+                    .filter((l) => `${l.nom} ${l.ville}`.toLowerCase().includes(rechercheEtab.trim().toLowerCase()))
+                    .slice(0, 12)
+                    .map((l) => (
+                      <li key={l.id}>
+                        <button type="button"
+                          onMouseDown={() => { setFiltreResto(l.id); setRechercheEtab(`${l.nom} — ${l.ville}`); setListeEtabOuverte(false) }}
+                          className="block w-full px-3 py-2 text-left text-sm hover:bg-pilou-creme">
+                          {l.nom} <span className="opacity-60">— {l.ville}</span>
+                          {!l.actif && <span className="ml-1 text-xs text-pilou-rouge">(inactif)</span>}
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+          </div>
           <label className={STYLE_FILTRE}>
             <input type="checkbox" checked={filtreGagnants}
               onChange={(e) => setFiltreGagnants(e.target.checked)} className="accent-pilou-rouge" />
@@ -288,6 +337,7 @@ export default function Joueurs() {
                 <th className="p-2">Joueur</th>
                 <th className="p-2">Établissement</th>
                 <th className="p-2">Résultat</th>
+                <th className="p-2 text-center" title="Lot remis (slider barman)">Remis</th>
                 <th className="p-2">News.</th>
               </tr>
             </thead>
@@ -314,6 +364,11 @@ export default function Joueurs() {
                       <span className="opacity-50">Perdu</span>
                     )}
                   </td>
+                  <td className="p-2 text-center">
+                    {p.resultat === 'gagne' && (p.retire
+                      ? <span className="text-green-600 font-bold" title="Lot remis au gagnant">✕</span>
+                      : <span className="opacity-30" title="Lot pas encore remis">—</span>)}
+                  </td>
                   <td className="p-2 text-xs">
                     {p.newsletter_brasserie && <span title="Newsletter Brasserie">🍺</span>}
                     {p.newsletter_etablissement && <span title="Newsletter établissement"> 🏠</span>}
@@ -321,7 +376,7 @@ export default function Joueurs() {
                 </tr>
               ))}
               {pageAffichee.length === 0 && !chargement && (
-                <tr><td colSpan="5" className="p-4 text-center opacity-60">Aucune partie ne correspond aux filtres.</td></tr>
+                <tr><td colSpan="6" className="p-4 text-center opacity-60">Aucune partie ne correspond aux filtres.</td></tr>
               )}
             </tbody>
           </table>

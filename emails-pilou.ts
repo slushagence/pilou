@@ -1,7 +1,7 @@
 const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY')
 const EMAIL_EXPEDITEUR = Deno.env.get('EMAIL_EXPEDITEUR')
 const EMAIL_BRASSERIE = Deno.env.get('EMAIL_BRASSERIE')
-const EMAIL_BOUTIQUE = Deno.env.get('EMAIL_BOUTIQUE') ?? 'boutique@brasserieducomte.fr'
+const EMAIL_BOUTIQUE = Deno.env.get('EMAIL_BOUTIQUE') ?? 'ramenetacapsule@brasserieducomte.fr'
 const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET')
 
 const ROUGE = '#a32018'
@@ -313,32 +313,27 @@ Deno.serve(async (req) => {
   }
 
   // ── Cas 1 : un joueur vient de gagner (INSERT)
+  // Mails envoyés UNIQUEMENT pour le lot Visite Brasserie :
+  // les lots classiques se retirent au comptoir sur présentation de l'écran
+  // (slider barman), sans email — évite triche et encombrement des boîtes.
   if (payload.table === 'parties' && payload.type === 'INSERT') {
     const partie = payload.record
-    if (partie.resultat === 'gagne' && partie.code_retrait) {
+    if (partie.resultat === 'gagne' && partie.code_retrait && estLotVisiteBrasserie(partie.lot_nom)) {
       const lieu = await infoLieu(partie.lieu_id)
 
+      // Mail au gagnant (avec délais : contact sous 15 j, visite sous 6 mois)
       await envoyerEmail(
         partie.email,
         `🪙 Bravo ${partie.prenom}, tu as gagné : ${partie.lot_nom} !`,
         emailGagnant(partie, lieu),
       )
 
-      if (lieu?.email_contact) {
-        await envoyerEmail(
-          lieu.email_contact,
-          `🪙 Nouveau gagnant Pilou — ${partie.lot_nom} (code : ${partie.code_retrait})`,
-          emailNotifEtablissement(partie, lieu),
-        )
-      }
-
-      if (estLotVisiteBrasserie(partie.lot_nom)) {
-        await envoyerEmail(
-          EMAIL_BOUTIQUE,
-          `🏭 Lot Visite Brasserie gagné — ${partie.prenom} ${partie.nom}`,
-          emailVisiteBrasserie(partie, lieu),
-        )
-      }
+      // Notification à la gestion des jeux BDC
+      await envoyerEmail(
+        EMAIL_BOUTIQUE,
+        `🏭 Lot Visite Brasserie gagné — ${partie.prenom} ${partie.nom}`,
+        emailVisiteBrasserie(partie, lieu),
+      )
     }
   }
 

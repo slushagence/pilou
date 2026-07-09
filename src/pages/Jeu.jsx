@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, Navigate, Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import LogoPilou from '../components/LogoPilou'
@@ -12,9 +12,59 @@ export default function Jeu() {
   const [enRotation, setEnRotation] = useState(false)
   const [faceFinale, setFaceFinale] = useState(null)
   const [erreur, setErreur] = useState(null)
+  const [lotsDispo, setLotsDispo] = useState(null) // null = chargement, sinon nombre
+
+  const lieuId = state?.lieu?.id
+
+  // Vérifie qu'il reste des lots à gagner dans cet établissement
+  useEffect(() => {
+    if (!lieuId) return
+    supabase
+      .from('v_lots')
+      .select('id', { count: 'exact', head: true })
+      .eq('lieu_id', lieuId)
+      .then(({ count }) => setLotsDispo(count ?? 0))
+  }, [lieuId])
 
   if (!state?.lieu || !state?.joueur) return <Navigate to="/jouer" replace />
   const { lieu, joueur } = state
+
+  // ── Plus aucun lot disponible : message d'excuse ──
+  if (lotsDispo === 0) {
+    return (
+      <main className="fond-rouge min-h-screen px-6 py-10 text-pilou-creme">
+        <div className="mx-auto flex max-w-md flex-col items-center text-center">
+          <LogoPilou variante="blanc" hauteur={56} />
+
+          <p className="mt-10 text-5xl">😅</p>
+          <h1 className="titre mt-4 text-3xl font-bold">
+            Oups, victime de son succès !
+          </h1>
+          <p className="mt-4 text-sm opacity-90 leading-relaxed">
+            Le jeu n'est pas disponible pour le moment dans cet établissement :
+            tous les lots ont été gagnés !<br />
+            Reviens bientôt, le stock sera réapprovisionné.
+          </p>
+
+          <p className="mt-6 text-sm opacity-80">{lieu.nom} — {lieu.ville}</p>
+
+          <Link to="/" className="titre mt-8 block w-full rounded bg-pilou-creme py-4 text-xl
+                     font-bold text-pilou-rouge shadow-lg transition hover:bg-white">
+            Retour à l'accueil
+          </Link>
+
+          <img src={logoBDC} alt="Brasserie du Comté"
+            className="mt-10 w-20 object-contain opacity-80"
+            draggable="false" />
+
+          <a href="https://www.lapilou.fr" target="_blank" rel="noopener noreferrer"
+            className="mt-4 text-base font-bold text-pilou-creme uppercase underline hover:opacity-80 text-center block">
+            🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
+          </a>
+        </div>
+      </main>
+    )
+  }
 
   async function tournerLaPiece() {
     if (enRotation || faceFinale) return
@@ -43,6 +93,8 @@ export default function Jeu() {
       setEnRotation(false)
       if (data.erreur === 'deja_joue_aujourdhui') {
         setErreur('Tu as déjà joué aujourd\u2019hui ! Reviens tenter ta chance demain.')
+      } else if (data.erreur === 'trop_de_tentatives') {
+        setErreur('Limite atteinte pour aujourd\u2019hui ! Rappel de la règle : 1 adresse email par jour et 3 tentatives maximum par joueur. Reviens demain dans ton établissement pour rejouer !')
       } else if (data.erreur === 'etablissement_inconnu') {
         setErreur('Ce lieu ne participe plus au jeu.')
       } else {

@@ -76,10 +76,37 @@ export default function Formulaire() {
     return Object.keys(e).length === 0
   }
 
-  function lancerLeJeu() {
+  // Vérifie que le domaine de l'email existe vraiment (enregistrement MX)
+  // via DNS-over-HTTPS Google. En cas de doute (réseau, timeout), on laisse passer.
+  async function domaineEmailValide(adresse) {
+    try {
+      const domaine = adresse.split('@')[1]
+      const controleur = new AbortController()
+      const timer = setTimeout(() => controleur.abort(), 3000)
+      const reponse = await fetch(
+        `https://dns.google/resolve?name=${encodeURIComponent(domaine)}&type=MX`,
+        { signal: controleur.signal }
+      )
+      clearTimeout(timer)
+      const data = await reponse.json()
+      // Status 0 = NOERROR ; Answer présent = le domaine reçoit des emails
+      return data.Status === 0 && Array.isArray(data.Answer) && data.Answer.length > 0
+    } catch {
+      return true // en cas d'échec technique, on ne bloque pas le joueur
+    }
+  }
+
+  async function lancerLeJeu() {
     // Honeypot : si ce champ caché est rempli, c'est un bot — on bloque silencieusement
     if (siteWeb.trim() !== '') return
     if (!valider()) return
+
+    // Anti-triche : le domaine de l'email doit exister
+    if (!(await domaineEmailValide(email.trim()))) {
+      setErreurs({ email: "Cette adresse email semble invalide (domaine inexistant). Vérifie l'orthographe." })
+      return
+    }
+
     navigate('/jeu', {
       state: {
         lieu,
