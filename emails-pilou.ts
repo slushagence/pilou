@@ -122,7 +122,7 @@ function emailGagnant(partie, lieu) {
         <!-- Mention pièce identité -->
         <tr><td align="center" style="padding-bottom:24px;">
           <p style="margin:0;color:#ffffff;font-size:12px;opacity:0.8;text-align:center;max-width:320px;margin:0 auto;">
-            Tu vas aussi recevoir un email avec ton bon de retrait. Une pièce d'identité pourra t'être demandée.
+            Cet email fait office de bon de retrait. Une pièce d'identité pourra t'être demandée.
           </p>
         </td></tr>
 

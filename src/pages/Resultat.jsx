@@ -24,7 +24,7 @@ export default function Resultat() {
 
           <h1 className="titre mt-4 text-4xl font-bold">
             Lot remis !
-            <span className="block text-pilou-or">Santé {reponse.prenom} !</span>
+            <span className="block text-pilou-or">E Viva {reponse.prenom} !</span>
           </h1>
 
           <p className="mt-6 titre text-lg font-bold">
