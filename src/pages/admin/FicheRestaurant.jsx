@@ -143,6 +143,10 @@ export default function FicheRestaurant() {
   // Stats du lieu
   const [stats, setStats] = useState({ parties: 0, gagnants: 0 })
 
+  // Dernières participations de ce lieu
+  const [partiesLieu, setPartiesLieu] = useState([])
+  const [filtreGagnantsLieu, setFiltreGagnantsLieu] = useState(false)
+
   const [formLot, setFormLot] = useState(false)
   const [nl, setNl] = useState({ nom: '', description: '', valeur: '', stock: '', seuil: '5', pct: '50' })
   const [erreurLot, setErreurLot] = useState(null)
@@ -150,10 +154,15 @@ export default function FicheRestaurant() {
   const jourParis = new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris' }).format(new Date())
 
   async function charger() {
-    const [r1, r2, r3] = await Promise.all([
+    const [r1, r2, r3, r4] = await Promise.all([
       supabase.from('lieux').select('*').eq('id', id).single(),
       supabase.from('lots').select('*').eq('lieu_id', id).order('created_at'),
       supabase.from('parties').select('resultat').eq('lieu_id', id).eq('jour', jourParis),
+      supabase.from('parties')
+        .select('id, created_at, prenom, nom, email, telephone, resultat, lot_nom, code_retrait, retire')
+        .eq('lieu_id', id)
+        .order('created_at', { ascending: false })
+        .limit(100),
     ])
     if (r1.error) { setMessageErreur("Établissement introuvable."); return }
     setLieu(r1.data)
@@ -170,6 +179,7 @@ export default function FicheRestaurant() {
       parties: parties.length,
       gagnants: parties.filter((p) => p.resultat === 'gagne').length,
     })
+    setPartiesLieu(r4.data ?? [])
   }
 
   useEffect(() => { charger() }, [id])
@@ -429,7 +439,14 @@ export default function FicheRestaurant() {
         )}
 
         {/* ── Stats du jour ── */}
-        <section className="mt-4 grid grid-cols-2 gap-4">
+        <div className="mt-4 flex items-center justify-between">
+          <p className="titre text-sm font-bold opacity-70">Aujourd'hui</p>
+          <button type="button" onClick={charger} title="Rafraîchir"
+            className="rounded border border-pilou-creme-fonce bg-white/70 px-2 py-1 text-xs hover:bg-white">
+            🔄 Rafraîchir
+          </button>
+        </div>
+        <section className="mt-2 grid grid-cols-2 gap-4">
           <div className="rounded bg-white/70 p-4 text-center shadow-sm">
             <p className="titre text-3xl font-bold text-pilou-rouge">{stats.parties}</p>
             <p className="text-sm opacity-70">parties aujourd'hui</p>
@@ -568,6 +585,65 @@ export default function FicheRestaurant() {
             )
           })()}
         </section>
+
+        {/* ── Participants & gagnants de cet établissement ── */}
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="titre text-lg font-bold text-pilou-rouge">Participants & gagnants</h2>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={filtreGagnantsLieu}
+              onChange={(e) => setFiltreGagnantsLieu(e.target.checked)}
+              className="accent-pilou-rouge" />
+            Gagnants uniquement
+          </label>
+        </div>
+        <section className="mt-3 overflow-x-auto rounded bg-white/70 shadow-sm">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-pilou-rouge text-left text-pilou-creme">
+                <th className="p-2">Date</th>
+                <th className="p-2">Joueur</th>
+                <th className="p-2">Résultat</th>
+                <th className="p-2 text-center" title="Lot remis (slider barman)">Remis</th>
+              </tr>
+            </thead>
+            <tbody>
+              {partiesLieu
+                .filter((p) => !filtreGagnantsLieu || p.resultat === 'gagne')
+                .map((p) => (
+                <tr key={p.id} className="border-t border-pilou-creme-fonce align-top">
+                  <td className="p-2 whitespace-nowrap opacity-80 text-xs">
+                    {new Date(p.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Paris' })}
+                  </td>
+                  <td className="p-2">
+                    <p className="font-semibold">{p.prenom} {p.nom}</p>
+                    <p className="text-xs opacity-60">{p.email}{p.telephone ? ` · ${p.telephone}` : ''}</p>
+                  </td>
+                  <td className="p-2">
+                    {p.resultat === 'gagne' ? (
+                      <>
+                        <p className="font-semibold text-pilou-rouge">🪙 {p.lot_nom}</p>
+                        <p className="text-xs opacity-60">code : {p.code_retrait}</p>
+                      </>
+                    ) : <span className="opacity-40">Perdu</span>}
+                  </td>
+                  <td className="p-2 text-center">
+                    {p.resultat === 'gagne' && (p.retire
+                      ? <span className="text-green-600 font-bold" title="Lot remis">✕</span>
+                      : <span className="opacity-30">—</span>)}
+                  </td>
+                </tr>
+              ))}
+              {partiesLieu.filter((p) => !filtreGagnantsLieu || p.resultat === 'gagne').length === 0 && (
+                <tr><td colSpan="4" className="p-4 text-center opacity-60">Aucune participation pour le moment.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </section>
+        <p className="mt-2 text-xs opacity-50">
+          Les 100 dernières participations de cet établissement. Pour l'historique complet,
+          les filtres par période et les exports, voir{' '}
+          <Link to="/admin/joueurs" className="underline">Joueurs & Gagnants</Link>.
+        </p>
       </div>
     </main>
   )

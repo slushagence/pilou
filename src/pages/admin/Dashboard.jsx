@@ -294,7 +294,13 @@ export default function Dashboard() {
         {/* ── Stats avec sélecteur de période ── */}
         <section className="mt-6 rounded bg-white/70 p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <p className="titre font-bold text-sm">Statistiques — <span className="text-pilou-rouge">{periodeLibelle}</span></p>
+            <div className="flex items-center gap-2">
+              <p className="titre font-bold text-sm">Statistiques — <span className="text-pilou-rouge">{periodeLibelle}</span></p>
+              <button type="button" onClick={chargerTout} title="Rafraîchir les statistiques"
+                className="rounded border border-pilou-creme-fonce bg-white px-2 py-1 text-xs hover:bg-pilou-creme">
+                🔄 Rafraîchir
+              </button>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {[
                 { label: "Aujourd'hui", type: 'jour' },
