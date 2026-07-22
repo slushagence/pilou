@@ -1,10 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../supabase'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 const CHAMP = 'rounded border border-pilou-creme-fonce bg-white px-3 py-2 text-sm'
+
+// Texte affiché par défaut sur la page résultat si l'établissement n'a pas
+// personnalisé son message de retrait. Sert aussi de pré-remplissage ici,
+// pour donner une référence de longueur/ton à l'établissement qui personnalise.
+export const MESSAGE_RETRAIT_DEFAUT =
+  "Présente ce résultat au bar **aujourd'hui, avant la fermeture** pour remporter ton gain"
+const MAX_LONGUEUR_MESSAGE_RETRAIT = 180
 
 function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
   const [edition, setEdition] = useState(false)
@@ -139,6 +146,8 @@ export default function FicheRestaurant() {
   const [tauxPct, setTauxPct] = useState('')
   const [emailContact, setEmailContact] = useState('')
   const [codeAcces, setCodeAcces] = useState('')
+  const [messageRetrait, setMessageRetrait] = useState('')
+  const refMessageRetrait = useRef(null)
 
   // Stats du lieu
   const [stats, setStats] = useState({ parties: 0, gagnants: 0 })
@@ -173,6 +182,7 @@ export default function FicheRestaurant() {
     setTauxPct(String(Math.round(r1.data.taux_de_gain * 100)))
     setEmailContact(r1.data.email_contact ?? '')
     setCodeAcces(r1.data.code_acces ?? '')
+    setMessageRetrait(r1.data.message_retrait ?? MESSAGE_RETRAIT_DEFAUT)
     setLots(r2.data ?? [])
     const parties = r3.data ?? []
     setStats({
@@ -217,6 +227,9 @@ export default function FicheRestaurant() {
     if (Number.isNaN(taux) || taux < 0 || taux > 100) {
       setMessageErreur('Le taux de gain doit être entre 0 et 100 %.'); return
     }
+    if (messageRetrait.trim().length > MAX_LONGUEUR_MESSAGE_RETRAIT) {
+      setMessageErreur(`Le message de retrait doit faire moins de ${MAX_LONGUEUR_MESSAGE_RETRAIT} caractères.`); return
+    }
     setMessageErreur(null)
     await supabase.from('lieux').update({
       nom: nomResto.trim(),
@@ -226,13 +239,33 @@ export default function FicheRestaurant() {
       taux_de_gain: taux / 100,
       email_contact: emailContact.trim() || null,
       code_acces: codeAcces.trim() || null,
+      message_retrait: messageRetrait.trim() || MESSAGE_RETRAIT_DEFAUT,
     }).eq('id', id)
     charger()
+    setMessageSucces('Réglages enregistrés !')
+    setTimeout(() => setMessageSucces(null), 4000)
+  }
+
+  function mettreEnGras() {
+    const champ = refMessageRetrait.current
+    if (!champ) return
+    const { selectionStart: debut, selectionEnd: fin } = champ
+    if (debut === fin) return // rien de sélectionné
+    const texte = messageRetrait
+    const nouveauTexte = `${texte.slice(0, debut)}**${texte.slice(debut, fin)}**${texte.slice(fin)}`
+    setMessageRetrait(nouveauTexte)
+    // Remet le focus et la sélection sur le texte mis en gras, ** compris
+    requestAnimationFrame(() => {
+      champ.focus()
+      champ.setSelectionRange(debut, fin + 4)
+    })
   }
 
   async function basculerActifResto() {
     await supabase.from('lieux').update({ actif: !lieu.actif }).eq('id', id)
     charger()
+    setMessageSucces(lieu.actif ? 'Établissement désactivé.' : 'Établissement activé.')
+    setTimeout(() => setMessageSucces(null), 4000)
   }
 
   async function supprimerEtablissement() {
@@ -343,6 +376,8 @@ export default function FicheRestaurant() {
   async function majLot(lotId, maj) {
     await supabase.from('lots').update(maj).eq('id', lotId)
     charger()
+    setMessageSucces('Lot mis à jour.')
+    setTimeout(() => setMessageSucces(null), 4000)
   }
 
   async function supprimerLot(lot) {
@@ -351,6 +386,9 @@ export default function FicheRestaurant() {
     const { error } = await supabase.from('lots').delete().eq('id', lot.id)
     if (error) {
       setMessageErreur('Suppression impossible : ce lot a déjà été gagné. Utilise "Désactiver".')
+    } else {
+      setMessageSucces('Lot supprimé.')
+      setTimeout(() => setMessageSucces(null), 4000)
     }
     charger()
   }
@@ -379,6 +417,8 @@ export default function FicheRestaurant() {
     setNl({ nom: '', description: '', valeur: '', stock: '', seuil: '5', pct: '50' })
     setFormLot(false)
     charger()
+    setMessageSucces('Lot créé !')
+    setTimeout(() => setMessageSucces(null), 4000)
   }
 
   if (!lieu) {
@@ -478,6 +518,29 @@ export default function FicheRestaurant() {
                 onChange={(e) => setContactResto(e.target.value)} placeholder="Prénom Nom" />
             </label>
           </div>
+
+          <label className="mt-3 block text-xs opacity-70">
+            Message affiché au joueur pour retirer son lot
+            <div className="mt-1 flex items-center gap-2">
+              <button type="button" onClick={mettreEnGras}
+                className="rounded border border-pilou-creme-fonce bg-white px-2 py-1 text-xs font-bold"
+                title="Sélectionne du texte puis clique ici pour le mettre en avant en orange">
+                Gras
+              </button>
+              <span className="text-[11px] opacity-60">sélectionne un mot puis clique pour le mettre en avant en orange</span>
+            </div>
+            <textarea
+              ref={refMessageRetrait}
+              className={`${CHAMP} mt-1 w-full`}
+              rows={3}
+              maxLength={MAX_LONGUEUR_MESSAGE_RETRAIT}
+              value={messageRetrait}
+              onChange={(e) => setMessageRetrait(e.target.value)}
+            />
+            <span className="mt-1 block text-right text-[11px] opacity-60">
+              {messageRetrait.length}/{MAX_LONGUEUR_MESSAGE_RETRAIT} caractères
+            </span>
+          </label>
 
           <h2 className="titre mt-5 font-bold">Réglages du jeu</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">

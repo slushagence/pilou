@@ -1,3 +1,5 @@
+
+
 import { Link } from 'react-router-dom'
 import homeApp from '../assets/pilou/home_app.png'
 import logoBDC from '../assets/pilou/logo-bdc.png'
@@ -13,7 +15,6 @@ export default function Landing() {
         className="w-full max-w-sm mix-blend-multiply"
         draggable="false"
       />
-
       {/* Bouton CTA */}
       <Link
         to="/jouer"

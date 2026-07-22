@@ -6,6 +6,24 @@ import SliderRetrait from '../components/SliderRetrait'
 import enfant from '../assets/pilou/pilou-enfant.webp'
 import logoBDC from '../assets/pilou/logo-bdc_blanc.png'
 
+// Permet à l'établissement de personnaliser la mise en forme de son message :
+// **texte** est mis en avant en text-pilou-or, un retour à la ligne (touche
+// Entrée, ou l'ancien marqueur <br>) insère un saut de ligne. Jamais de HTML
+// brut injecté (pas de dangerouslySetInnerHTML) — uniquement ces marqueurs
+// précis, reconnus et rendus explicitement ci-dessous.
+function texteAvecMiseEnAvant(texte) {
+  return texte.split(/\n|<br>/).map((ligne, i) => (
+    <span key={i}>
+      {i > 0 && <br />}
+      {ligne.split(/\*\*(.+?)\*\*/g).map((morceau, j) =>
+        j % 2 === 1
+          ? <span key={j} className="text-pilou-or">{morceau}</span>
+          : morceau
+      )}
+    </span>
+  ))
+}
+
 export default function Resultat() {
   const { state } = useLocation()
   const [retire, setRetire] = useState(false)
@@ -85,9 +103,10 @@ export default function Resultat() {
             </p>
 
             <p className="mt-6 titre text-lg font-bold leading-snug">
-              Présente ce résultat au bar
-              <span className="block text-pilou-or">aujourd'hui, avant la fermeture</span>
-              <span className="block">pour remporter ton gain</span>
+              {texteAvecMiseEnAvant(
+                lieu?.message_retrait ??
+                  "Présente ce résultat au bar **aujourd'hui, avant la fermeture** pour remporter ton gain"
+              )}
             </p>
 
             <p className="mt-4 text-sm opacity-90">
