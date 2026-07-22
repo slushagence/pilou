@@ -21,7 +21,9 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
     const pctAffiche = totalPoids > 0 ? Math.round((lot.poids / totalPoids) * 100) : lot.poids
     setValeurs({
       nom: lot.nom,
+      nom_en: lot.nom_en ?? '',
       description: lot.description ?? '',
+      description_en: lot.description_en ?? '',
       valeur_euros: String(lot.valeur_euros),
       stock_restant: String(lot.stock_restant),
       stock_initial: String(lot.stock_initial),
@@ -36,7 +38,9 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
     if (isNaN(pct) || pct < 1 || pct > 100) return
     const maj = {
       nom: valeurs.nom.trim(),
+      nom_en: valeurs.nom_en.trim() || null,
       description: valeurs.description.trim() || null,
+      description_en: valeurs.description_en.trim() || null,
       valeur_euros: parseFloat(String(valeurs.valeur_euros).replace(',', '.')),
       stock_restant: parseInt(valeurs.stock_restant, 10),
       stock_initial: parseInt(valeurs.stock_initial, 10),
@@ -64,6 +68,11 @@ function LigneLot({ lot, totalPoids, tauxDeGain, onMaj, onSupprimer }) {
           <input className={`${CHAMP} sm:col-span-2`} placeholder="Description"
             value={valeurs.description}
             onChange={(e) => setValeurs((v) => ({ ...v, description: e.target.value }))} />
+          <input className={CHAMP} placeholder="Nom (anglais)" value={valeurs.nom_en}
+            onChange={(e) => setValeurs((v) => ({ ...v, nom_en: e.target.value }))} />
+          <input className={`${CHAMP} sm:col-span-2`} placeholder="Description (anglais)"
+            value={valeurs.description_en}
+            onChange={(e) => setValeurs((v) => ({ ...v, description_en: e.target.value }))} />
           <label className="text-xs opacity-70">Stock restant
             <input type="number" min="0" className={`${CHAMP} mt-1 w-full`} value={valeurs.stock_restant}
               onChange={(e) => setValeurs((v) => ({ ...v, stock_restant: e.target.value }))} />
@@ -147,7 +156,9 @@ export default function FicheRestaurant() {
   const [emailContact, setEmailContact] = useState('')
   const [codeAcces, setCodeAcces] = useState('')
   const [messageRetrait, setMessageRetrait] = useState('')
+  const [messageRetraitEn, setMessageRetraitEn] = useState('')
   const refMessageRetrait = useRef(null)
+  const refMessageRetraitEn = useRef(null)
 
   // Stats du lieu
   const [stats, setStats] = useState({ parties: 0, gagnants: 0 })
@@ -157,7 +168,7 @@ export default function FicheRestaurant() {
   const [filtreGagnantsLieu, setFiltreGagnantsLieu] = useState(false)
 
   const [formLot, setFormLot] = useState(false)
-  const [nl, setNl] = useState({ nom: '', description: '', valeur: '', stock: '', seuil: '5', pct: '50' })
+  const [nl, setNl] = useState({ nom: '', nom_en: '', description: '', description_en: '', valeur: '', stock: '', seuil: '5', pct: '50' })
   const [erreurLot, setErreurLot] = useState(null)
 
   const jourParis = new Intl.DateTimeFormat('fr-CA', { timeZone: 'Europe/Paris' }).format(new Date())
@@ -183,6 +194,7 @@ export default function FicheRestaurant() {
     setEmailContact(r1.data.email_contact ?? '')
     setCodeAcces(r1.data.code_acces ?? '')
     setMessageRetrait(r1.data.message_retrait ?? MESSAGE_RETRAIT_DEFAUT)
+    setMessageRetraitEn(r1.data.message_retrait_en ?? '')
     setLots(r2.data ?? [])
     const parties = r3.data ?? []
     setStats({
@@ -230,6 +242,9 @@ export default function FicheRestaurant() {
     if (messageRetrait.trim().length > MAX_LONGUEUR_MESSAGE_RETRAIT) {
       setMessageErreur(`Le message de retrait doit faire moins de ${MAX_LONGUEUR_MESSAGE_RETRAIT} caractères.`); return
     }
+    if (messageRetraitEn.trim().length > MAX_LONGUEUR_MESSAGE_RETRAIT) {
+      setMessageErreur(`Le message de retrait (anglais) doit faire moins de ${MAX_LONGUEUR_MESSAGE_RETRAIT} caractères.`); return
+    }
     setMessageErreur(null)
     await supabase.from('lieux').update({
       nom: nomResto.trim(),
@@ -240,21 +255,20 @@ export default function FicheRestaurant() {
       email_contact: emailContact.trim() || null,
       code_acces: codeAcces.trim() || null,
       message_retrait: messageRetrait.trim() || MESSAGE_RETRAIT_DEFAUT,
+      message_retrait_en: messageRetraitEn.trim() || null,
     }).eq('id', id)
     charger()
     setMessageSucces('Réglages enregistrés !')
     setTimeout(() => setMessageSucces(null), 4000)
   }
 
-  function mettreEnGras() {
-    const champ = refMessageRetrait.current
+  function mettreEnGras(ref, valeur, setValeur) {
+    const champ = ref.current
     if (!champ) return
     const { selectionStart: debut, selectionEnd: fin } = champ
     if (debut === fin) return // rien de sélectionné
-    const texte = messageRetrait
-    const nouveauTexte = `${texte.slice(0, debut)}**${texte.slice(debut, fin)}**${texte.slice(fin)}`
-    setMessageRetrait(nouveauTexte)
-    // Remet le focus et la sélection sur le texte mis en gras, ** compris
+    const nouveauTexte = `${valeur.slice(0, debut)}**${valeur.slice(debut, fin)}**${valeur.slice(fin)}`
+    setValeur(nouveauTexte)
     requestAnimationFrame(() => {
       champ.focus()
       champ.setSelectionRange(debut, fin + 4)
@@ -406,7 +420,9 @@ export default function FicheRestaurant() {
     const { error } = await supabase.from('lots').insert({
       lieu_id: id,
       nom: nl.nom.trim(),
+      nom_en: nl.nom_en.trim() || null,
       description: nl.description.trim() || null,
+      description_en: nl.description_en.trim() || null,
       valeur_euros: valeur,
       stock_initial: stock,
       stock_restant: stock,
@@ -414,7 +430,7 @@ export default function FicheRestaurant() {
       poids: pct,
     })
     if (error) { setErreurLot('La création a échoué. Réessaie.'); return }
-    setNl({ nom: '', description: '', valeur: '', stock: '', seuil: '5', pct: '50' })
+    setNl({ nom: '', nom_en: '', description: '', description_en: '', valeur: '', stock: '', seuil: '5', pct: '50' })
     setFormLot(false)
     charger()
     setMessageSucces('Lot créé !')
@@ -520,9 +536,9 @@ export default function FicheRestaurant() {
           </div>
 
           <label className="mt-3 block text-xs opacity-70">
-            Message affiché au joueur pour retirer son lot
+            Message affiché au joueur pour retirer son lot (français)
             <div className="mt-1 flex items-center gap-2">
-              <button type="button" onClick={mettreEnGras}
+              <button type="button" onClick={() => mettreEnGras(refMessageRetrait, messageRetrait, setMessageRetrait)}
                 className="rounded border border-pilou-creme-fonce bg-white px-2 py-1 text-xs font-bold"
                 title="Sélectionne du texte puis clique ici pour le mettre en avant en orange">
                 Gras
@@ -539,6 +555,30 @@ export default function FicheRestaurant() {
             />
             <span className="mt-1 block text-right text-[11px] opacity-60">
               {messageRetrait.length}/{MAX_LONGUEUR_MESSAGE_RETRAIT} caractères
+            </span>
+          </label>
+
+          <label className="mt-3 block text-xs opacity-70">
+            Message affiché au joueur pour retirer son lot (anglais)
+            <div className="mt-1 flex items-center gap-2">
+              <button type="button" onClick={() => mettreEnGras(refMessageRetraitEn, messageRetraitEn, setMessageRetraitEn)}
+                className="rounded border border-pilou-creme-fonce bg-white px-2 py-1 text-xs font-bold"
+                title="Sélectionne du texte puis clique ici pour le mettre en avant en orange">
+                Gras
+              </button>
+              <span className="text-[11px] opacity-60">optionnel — si vide, la version française s'affiche aux joueurs en anglais</span>
+            </div>
+            <textarea
+              ref={refMessageRetraitEn}
+              className={`${CHAMP} mt-1 w-full`}
+              rows={3}
+              maxLength={MAX_LONGUEUR_MESSAGE_RETRAIT}
+              value={messageRetraitEn}
+              onChange={(e) => setMessageRetraitEn(e.target.value)}
+              placeholder="Leave empty to show the French message to English-speaking players"
+            />
+            <span className="mt-1 block text-right text-[11px] opacity-60">
+              {messageRetraitEn.length}/{MAX_LONGUEUR_MESSAGE_RETRAIT} caractères
             </span>
           </label>
 
@@ -608,6 +648,11 @@ export default function FicheRestaurant() {
               <input className={`${CHAMP} sm:col-span-2`} placeholder="Description (visible des joueurs)"
                 value={nl.description}
                 onChange={(e) => setNl((v) => ({ ...v, description: e.target.value }))} />
+              <input className={CHAMP} placeholder="Nom du lot (anglais)" value={nl.nom_en}
+                onChange={(e) => setNl((v) => ({ ...v, nom_en: e.target.value }))} />
+              <input className={`${CHAMP} sm:col-span-2`} placeholder="Description (anglais)"
+                value={nl.description_en}
+                onChange={(e) => setNl((v) => ({ ...v, description_en: e.target.value }))} />
               <input className={CHAMP} placeholder="Stock initial *" value={nl.stock}
                 onChange={(e) => setNl((v) => ({ ...v, stock: e.target.value }))} />
               <input className={CHAMP} placeholder="Alerte stock (reste X → mail BDC) (ex: 5)" value={nl.seuil}

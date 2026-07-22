@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../supabase'
 import LogoPilou from '../components/LogoPilou'
+import SelecteurLangue from '../components/SelecteurLangue'
 import logoBDC from '../assets/pilou/logo-bdc.png'
 
 export default function Formulaire() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const [lieux, setLieux] = useState([])
@@ -65,13 +68,13 @@ export default function Formulaire() {
 
   function valider() {
     const e = {}
-    if (!lieu) e.lieu = 'Choisis ton lieu dans la liste.'
-    if (!prenom.trim()) e.prenom = 'Ton prénom est requis.'
-    if (!nom.trim()) e.nom = 'Ton nom est requis.'
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) e.email = 'Email invalide.'
-    if (!/^[0-9+\s.-]{6,}$/.test(telephone.trim())) e.telephone = 'Numéro de téléphone requis.'
-    if (!/^[0-9]{5}$/.test(codePostal.trim())) e.codePostal = 'Code postal invalide (5 chiffres).'
-    if (!majeurEtReglement) e.majeur = 'Tu dois être majeur et accepter le règlement.'
+    if (!lieu) e.lieu = t('formulaire.erreurs.lieu')
+    if (!prenom.trim()) e.prenom = t('formulaire.erreurs.prenom')
+    if (!nom.trim()) e.nom = t('formulaire.erreurs.nom')
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) e.email = t('formulaire.erreurs.email')
+    if (!/^[0-9+\s.-]{6,}$/.test(telephone.trim())) e.telephone = t('formulaire.erreurs.telephone')
+    if (!/^[0-9]{5}$/.test(codePostal.trim())) e.codePostal = t('formulaire.erreurs.code_postal')
+    if (!majeurEtReglement) e.majeur = t('formulaire.erreurs.majeur')
     setErreurs(e)
     return Object.keys(e).length === 0
   }
@@ -103,7 +106,7 @@ export default function Formulaire() {
 
     // Anti-triche : le domaine de l'email doit exister
     if (!(await domaineEmailValide(email.trim()))) {
-      setErreurs({ email: "Cette adresse email semble invalide (domaine inexistant). Vérifie l'orthographe." })
+      setErreurs({ email: t('formulaire.erreurs.email_domaine') })
       return
     }
 
@@ -132,26 +135,27 @@ export default function Formulaire() {
   return (
     <main className="fond-papier min-h-screen px-6 py-10 text-pilou-encre">
       <div className="mx-auto max-w-md">
+        <SelecteurLangue />
         <LogoPilou variante="couleur" hauteur={112} />
 
         <h1 className="titre mt-8 text-center text-3xl font-bold leading-tight">
-          Avant de jouer,
-          <span className="block text-pilou-or">quelques infos</span>
+          {t('formulaire.titre_ligne1')}
+          <span className="block text-pilou-or">{t('formulaire.titre_ligne2')}</span>
         </h1>
         <p className="mt-3 text-center text-sm opacity-75">
-          Remplis ce formulaire pour tenter ta chance et découvrir ton gain !
+          {t('formulaire.sous_titre')}
         </p>
 
         {/* ── Choix du lieu ── */}
         <div className="relative mt-8" ref={zoneAutocomplete}>
           <label htmlFor="lieu" className="titre text-sm font-bold">
-            Choisis ton lieu <span className="text-pilou-rouge">*</span>
+            {t('formulaire.label_lieu')} <span className="text-pilou-rouge">*</span>
           </label>
           <input
             id="lieu"
             type="text"
             className={`${styleChamp} mt-1`}
-            placeholder="Commence à taper le nom..."
+            placeholder={t('formulaire.placeholder_lieu')}
             value={recherche}
             onChange={(e) => {
               setRecherche(e.target.value)
@@ -175,14 +179,14 @@ export default function Formulaire() {
                 </li>
               ))}
               {resultats.length === 0 && (
-                <li className="px-3 py-2.5 text-sm opacity-60">Aucun lieu trouvé.</li>
+                <li className="px-3 py-2.5 text-sm opacity-60">{t('formulaire.aucun_lieu')}</li>
               )}
             </ul>
           )}
-          {chargement && <p className="mt-1 text-xs opacity-60">Chargement des lieux...</p>}
+          {chargement && <p className="mt-1 text-xs opacity-60">{t('formulaire.chargement_lieux')}</p>}
           {erreurChargement && (
             <p className="mt-1 text-xs text-pilou-rouge">
-              Impossible de charger la liste. Vérifie ta connexion et recharge la page.
+              {t('formulaire.erreur_chargement_lieux')}
             </p>
           )}
           {erreurs.lieu && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.lieu}</p>}
@@ -191,25 +195,25 @@ export default function Formulaire() {
         {/* ── Identité ── */}
         <div className="mt-5">
           <label htmlFor="prenom" className="titre text-sm font-bold">
-            Prénom <span className="text-pilou-rouge">*</span>
+            {t('formulaire.label_prenom')} <span className="text-pilou-rouge">*</span>
           </label>
-          <input id="prenom" type="text" className={`${styleChamp} mt-1`} placeholder="Prénom"
+          <input id="prenom" type="text" className={`${styleChamp} mt-1`} placeholder={t('formulaire.label_prenom')}
             value={prenom} onChange={(e) => setPrenom(e.target.value)} autoComplete="given-name" />
           {erreurs.prenom && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.prenom}</p>}
         </div>
 
         <div className="mt-5">
           <label htmlFor="nom" className="titre text-sm font-bold">
-            Nom <span className="text-pilou-rouge">*</span>
+            {t('formulaire.label_nom')} <span className="text-pilou-rouge">*</span>
           </label>
-          <input id="nom" type="text" className={`${styleChamp} mt-1`} placeholder="Nom"
+          <input id="nom" type="text" className={`${styleChamp} mt-1`} placeholder={t('formulaire.label_nom')}
             value={nom} onChange={(e) => setNom(e.target.value)} autoComplete="family-name" />
           {erreurs.nom && <p className="mt-1 text-xs text-pilou-rouge">{erreurs.nom}</p>}
         </div>
 
         <div className="mt-5">
           <label htmlFor="email" className="titre text-sm font-bold">
-            Email <span className="text-pilou-rouge">*</span>
+            {t('formulaire.label_email')} <span className="text-pilou-rouge">*</span>
           </label>
           <input id="email" type="email" className={`${styleChamp} mt-1`} placeholder="email@exemple.com"
             value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
@@ -218,7 +222,7 @@ export default function Formulaire() {
 
         <div className="mt-5">
           <label htmlFor="telephone" className="titre text-sm font-bold">
-            Téléphone <span className="text-pilou-rouge">*</span>
+            {t('formulaire.label_telephone')} <span className="text-pilou-rouge">*</span>
           </label>
           <input id="telephone" type="tel" className={`${styleChamp} mt-1`} placeholder="06 12 34 56 78"
             value={telephone} onChange={(e) => setTelephone(e.target.value)} autoComplete="tel" />
@@ -227,7 +231,7 @@ export default function Formulaire() {
 
         <div className="mt-5">
           <label htmlFor="codePostal" className="titre text-sm font-bold">
-            Code postal <span className="text-pilou-rouge">*</span>
+            {t('formulaire.label_code_postal')} <span className="text-pilou-rouge">*</span>
           </label>
           <input id="codePostal" type="text" inputMode="numeric" className={`${styleChamp} mt-1`} placeholder="06000"
             value={codePostal} onChange={(e) => setCodePostal(e.target.value)} autoComplete="postal-code" maxLength={5} />
@@ -243,10 +247,10 @@ export default function Formulaire() {
             className="mt-0.5 h-5 w-5 flex-shrink-0 accent-pilou-rouge"
           />
           <span>
-            J'ai plus de 18 ans et j'accepte le{' '}
+            {t('formulaire.accepte_reglement_debut')}{' '}
             <a href="/reglement" target="_blank" rel="noopener noreferrer"
                className="font-semibold underline">
-              règlement du jeu
+              {t('formulaire.lien_reglement')}
             </a>
             <span className="text-pilou-rouge"> *</span>
           </span>
@@ -261,7 +265,7 @@ export default function Formulaire() {
             onChange={(e) => setNewsletterBrasserie(e.target.checked)}
             className="mt-0.5 h-5 w-5 flex-shrink-0 accent-pilou-rouge"
           />
-          <span>Je souhaite recevoir la newsletter de la Brasserie</span>
+          <span>{t('formulaire.newsletter_brasserie')}</span>
         </label>
         <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm">
           <input
@@ -271,8 +275,7 @@ export default function Formulaire() {
             className="mt-0.5 h-5 w-5 flex-shrink-0 accent-pilou-rouge"
           />
           <span>
-            J'accepte que mes coordonnées soient transmises à l'établissement / événement sélectionné
-            afin de recevoir ses communications commerciales
+            {t('formulaire.newsletter_etablissement')}
           </span>
         </label>
         <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm">
@@ -283,8 +286,7 @@ export default function Formulaire() {
             className="mt-0.5 h-5 w-5 flex-shrink-0 accent-pilou-rouge"
           />
           <span>
-            J'accepte que mon prénom et nom puissent être utilisés à des fins de communication
-            promotionnelle par la Brasserie du Comté
+            {t('formulaire.consentement_promo')}
           </span>
         </label>
 
@@ -308,7 +310,7 @@ export default function Formulaire() {
                      shadow-lg transition hover:bg-pilou-rouge-fonce
                      focus:outline-2 focus:outline-offset-2 focus:outline-pilou-rouge"
         >
-          C'est parti !
+          {t('formulaire.bouton_valider')}
         </button>
 
         <img src={logoBDC} alt="Brasserie du Comté"
@@ -321,7 +323,7 @@ export default function Formulaire() {
           rel="noopener noreferrer"
           className="mt-4 block text-center text-base font-bold text-pilou-rouge uppercase underline hover:opacity-80"
         >
-          🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
+          🍺 <i>{t('commun.lien_site_titre')}</i> 🍺<br/>{t('commun.lien_site_cta')}
         </a>
       </div>
     </main>

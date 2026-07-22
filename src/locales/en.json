@@ -1,0 +1,90 @@
+{
+  "commun": {
+    "lien_site_titre": "What is Pilou?",
+    "lien_site_cta": "VISIT OUR WEBSITE TO FIND OUT MORE!"
+  },
+  "landing": {
+    "cta": "Play the game",
+    "mention_legale": "Game reserved for adults. Alcohol abuse is dangerous for your health."
+  },
+  "formulaire": {
+    "titre_ligne1": "Before you play,",
+    "titre_ligne2": "a few details",
+    "sous_titre": "Fill in this form to try your luck and discover your prize!",
+    "label_lieu": "Choose your venue",
+    "placeholder_lieu": "Start typing the name...",
+    "aucun_lieu": "No venue found.",
+    "chargement_lieux": "Loading venues...",
+    "erreur_chargement_lieux": "Couldn't load the list. Check your connection and reload the page.",
+    "label_prenom": "First name",
+    "label_nom": "Last name",
+    "label_email": "Email",
+    "label_telephone": "Phone",
+    "label_code_postal": "Postal code",
+    "accepte_reglement_debut": "I am over 18 and I accept the",
+    "lien_reglement": "game rules",
+    "newsletter_brasserie": "I'd like to receive the Brasserie's newsletter",
+    "newsletter_etablissement": "I agree that my details may be shared with the selected venue / event so they can send me their marketing communications",
+    "consentement_promo": "I agree that my first and last name may be used for promotional purposes by the Brasserie du Comté",
+    "bouton_valider": "Let's go!",
+    "erreurs": {
+      "lieu": "Choose your venue from the list.",
+      "prenom": "Your first name is required.",
+      "nom": "Your last name is required.",
+      "email": "Invalid email.",
+      "email_domaine": "This email address looks invalid (domain doesn't exist). Check the spelling.",
+      "telephone": "Phone number required.",
+      "code_postal": "Invalid postal code (5 digits).",
+      "majeur": "You must be an adult and accept the rules."
+    }
+  },
+  "jeu": {
+    "titre": "Your turn to play!",
+    "sous_titre": "Try your luck",
+    "chance": "1 in {{n}} chance of winning",
+    "bouton_tourner": "Flip the coin",
+    "bouton_en_cours": "Flipping...",
+    "voir_lots": "See available prizes",
+    "epuise_titre": "Oops, a victim of its own success!",
+    "epuise_texte": "The game isn't available right now at this venue: all prizes have been won!",
+    "epuise_texte2": "Check back soon, stock will be restocked.",
+    "retour_accueil": "Back to home",
+    "erreurs": {
+      "reseau": "The game didn't respond. Check your connection and try again.",
+      "deja_joue": "You've already played today! Come back and try your luck tomorrow.",
+      "trop_de_tentatives": "Limit reached for today! Reminder of the rule: 1 email address per day and 3 attempts maximum per player. Come back tomorrow at your venue to play again!",
+      "etablissement_inconnu": "This venue no longer takes part in the game.",
+      "generique": "The form seems incomplete. Go back and check your details."
+    }
+  },
+  "resultat": {
+    "gagne_titre": "Well done {{prenom}}!",
+    "gagne_sous_titre": "You won",
+    "code_retrait": "Redemption code:",
+    "piece_identite": "You may be asked for an ID.",
+    "piece_identite_visite": "You'll receive a confirmation email. You may be asked for an ID.",
+    "perdu_titre": "Not this time...",
+    "perdu_sous_titre": "better luck next time!",
+    "perdu_texte": "The coin didn't land on the right side this time. Come back and try your luck tomorrow!",
+    "retour_accueil": "Back to home",
+    "lot_remis_titre": "Prize collected!",
+    "lot_remis_viva": "E Viva {{prenom}}!",
+    "lot_remis_texte": "This prize has already been collected.",
+    "lot_remis_texte2": "This screen can no longer be used to collect a prize.",
+    "code_remis": "code {{code}} · collected \u2713",
+    "message_defaut": "Show this screen at the bar **today, before closing** to claim your prize"
+  },
+  "lots": {
+    "titre": "Prizes to be won",
+    "chargement": "Loading...",
+    "aucun_lot": "All prizes at this venue have been won... for now!",
+    "retour_jeu": "Back to the game"
+  },
+  "etablissements": {
+    "titre": "Participating venues",
+    "derniere_maj": "Last updated: {{date}}",
+    "chargement": "Loading...",
+    "aucun": "No participating venue at the moment.",
+    "retour_accueil": "Back to home"
+  }
+}

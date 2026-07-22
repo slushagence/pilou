@@ -1,18 +1,21 @@
-
-
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import SelecteurLangue from '../components/SelecteurLangue'
 import homeApp from '../assets/pilou/home_app.png'
 import logoBDC from '../assets/pilou/logo-bdc.png'
 
 export default function Landing() {
+  const { t } = useTranslation()
+
   return (
     <main className="fond-papier min-h-screen flex flex-col items-center px-6 py-10 text-pilou-encre">
+      <SelecteurLangue />
 
       {/* Visuel principal */}
       <img
         src={homeApp}
         alt="La Pilou — Bière Pression — Gagne ton Pilou et plus !"
-        className="w-full max-w-sm mix-blend-multiply"
+        className="mt-4 w-full max-w-sm mix-blend-multiply"
         draggable="false"
       />
       {/* Bouton CTA */}
@@ -23,7 +26,7 @@ export default function Landing() {
                    focus:outline-2 focus:outline-offset-2"
         style={{ backgroundColor: '#f39629' }}
       >
-        Participer au jeu
+        {t('landing.cta')}
       </Link>
 
       {/* Logo BDC */}
@@ -35,7 +38,7 @@ export default function Landing() {
       />
 
       <p className="mt-4 text-xs opacity-60 text-center">
-        Jeu réservé aux personnes majeures. L'abus d'alcool est dangereux pour la santé.
+        {t('landing.mention_legale')}
       </p>
 
       <a
@@ -44,7 +47,7 @@ export default function Landing() {
         rel="noopener noreferrer"
         className="mt-4 text-base font-bold text-pilou-rouge uppercase underline hover:opacity-80 text-center block"
       >
-        🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
+        🍺 <i>{t('commun.lien_site_titre')}</i> 🍺<br/>{t('commun.lien_site_cta')}
       </a>
     </main>
   )

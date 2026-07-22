@@ -1,0 +1,90 @@
+{
+  "commun": {
+    "lien_site_titre": "Qu'es la Pilou ?",
+    "lien_site_cta": "VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !"
+  },
+  "landing": {
+    "cta": "Participer au jeu",
+    "mention_legale": "Jeu réservé aux personnes majeures. L'abus d'alcool est dangereux pour la santé."
+  },
+  "formulaire": {
+    "titre_ligne1": "Avant de jouer,",
+    "titre_ligne2": "quelques infos",
+    "sous_titre": "Remplis ce formulaire pour tenter ta chance et découvrir ton gain !",
+    "label_lieu": "Choisis ton lieu",
+    "placeholder_lieu": "Commence à taper le nom...",
+    "aucun_lieu": "Aucun lieu trouvé.",
+    "chargement_lieux": "Chargement des lieux...",
+    "erreur_chargement_lieux": "Impossible de charger la liste. Vérifie ta connexion et recharge la page.",
+    "label_prenom": "Prénom",
+    "label_nom": "Nom",
+    "label_email": "Email",
+    "label_telephone": "Téléphone",
+    "label_code_postal": "Code postal",
+    "accepte_reglement_debut": "J'ai plus de 18 ans et j'accepte le",
+    "lien_reglement": "règlement du jeu",
+    "newsletter_brasserie": "Je souhaite recevoir la newsletter de la Brasserie",
+    "newsletter_etablissement": "J'accepte que mes coordonnées soient transmises à l'établissement / événement sélectionné afin de recevoir ses communications commerciales",
+    "consentement_promo": "J'accepte que mon prénom et nom puissent être utilisés à des fins de communication promotionnelle par la Brasserie du Comté",
+    "bouton_valider": "C'est parti !",
+    "erreurs": {
+      "lieu": "Choisis ton lieu dans la liste.",
+      "prenom": "Ton prénom est requis.",
+      "nom": "Ton nom est requis.",
+      "email": "Email invalide.",
+      "email_domaine": "Cette adresse email semble invalide (domaine inexistant). Vérifie l'orthographe.",
+      "telephone": "Numéro de téléphone requis.",
+      "code_postal": "Code postal invalide (5 chiffres).",
+      "majeur": "Tu dois être majeur et accepter le règlement."
+    }
+  },
+  "jeu": {
+    "titre": "À toi de jouer !",
+    "sous_titre": "Tente ta chance",
+    "chance": "1 chance sur {{n}} de gagner",
+    "bouton_tourner": "Faire tourner la pièce",
+    "bouton_en_cours": "La pièce tourne...",
+    "voir_lots": "Voir les lots disponibles",
+    "epuise_titre": "Oups, victime de son succès !",
+    "epuise_texte": "Le jeu n'est pas disponible pour le moment dans cet établissement : tous les lots ont été gagnés !",
+    "epuise_texte2": "Reviens bientôt, le stock sera réapprovisionné.",
+    "retour_accueil": "Retour à l'accueil",
+    "erreurs": {
+      "reseau": "Le jeu n'a pas répondu. Vérifie ta connexion et réessaie.",
+      "deja_joue": "Tu as déjà joué aujourd\u2019hui ! Reviens tenter ta chance demain.",
+      "trop_de_tentatives": "Limite atteinte pour aujourd\u2019hui ! Rappel de la règle : 1 adresse email par jour et 3 tentatives maximum par joueur. Reviens demain dans ton établissement pour rejouer !",
+      "etablissement_inconnu": "Ce lieu ne participe plus au jeu.",
+      "generique": "Le formulaire semble incomplet. Reviens en arrière et vérifie tes infos."
+    }
+  },
+  "resultat": {
+    "gagne_titre": "Bravo {{prenom}} !",
+    "gagne_sous_titre": "Tu as gagné",
+    "code_retrait": "Code de retrait :",
+    "piece_identite": "Une pièce d'identité pourra t'être demandée.",
+    "piece_identite_visite": "Tu vas recevoir un email de confirmation. Une pièce d'identité pourra t'être demandée.",
+    "perdu_titre": "Perdu...",
+    "perdu_sous_titre": "ce sera pour la prochaine fois !",
+    "perdu_texte": "La pièce n'est pas tombée du bon côté cette fois-ci. Reviens tenter ta chance demain !",
+    "retour_accueil": "Retour à l'accueil",
+    "lot_remis_titre": "Lot remis !",
+    "lot_remis_viva": "E Viva {{prenom}} !",
+    "lot_remis_texte": "Ce gain a été récupéré.",
+    "lot_remis_texte2": "Cet écran ne peut plus être utilisé pour retirer un lot.",
+    "code_remis": "code {{code}} · remis ✓",
+    "message_defaut": "Présente ce résultat au bar **aujourd'hui, avant la fermeture** pour remporter ton gain"
+  },
+  "lots": {
+    "titre": "Les lots à gagner",
+    "chargement": "Chargement...",
+    "aucun_lot": "Tous les lots de ce lieu ont été remportés... pour le moment !",
+    "retour_jeu": "Retour au jeu"
+  },
+  "etablissements": {
+    "titre": "Établissements participants",
+    "derniere_maj": "Dernière mise à jour : {{date}}",
+    "chargement": "Chargement...",
+    "aucun": "Aucun établissement participant pour le moment.",
+    "retour_accueil": "Retour à l'accueil"
+  }
+}

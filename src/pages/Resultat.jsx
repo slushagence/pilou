@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useLocation, Navigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import LogoPilou from '../components/LogoPilou'
 import PiecePilou from '../components/PiecePilou'
 import SliderRetrait from '../components/SliderRetrait'
+import SelecteurLangue from '../components/SelecteurLangue'
 import enfant from '../assets/pilou/pilou-enfant.webp'
 import logoBDC from '../assets/pilou/logo-bdc_blanc.png'
 
@@ -25,44 +27,53 @@ function texteAvecMiseEnAvant(texte) {
 }
 
 export default function Resultat() {
+  const { t, i18n } = useTranslation()
   const { state } = useLocation()
   const [retire, setRetire] = useState(false)
   if (!state?.reponse) return <Navigate to="/" replace />
   const { reponse, lieu } = state
   const gagne = reponse.resultat === 'gagne'
 
+  // Message de retrait : version anglaise si dispo et langue EN, sinon
+  // version française de l'établissement, sinon le texte générique traduit.
+  const messageRetrait =
+    (i18n.language === 'en' && lieu?.message_retrait_en?.trim()) ||
+    lieu?.message_retrait ||
+    t('resultat.message_defaut')
+
   // ── Écran "lot remis" : remplace l'écran gagnant après le slide du barman ──
   if (retire) {
     return (
       <main className="fond-rouge min-h-screen px-6 py-10 text-pilou-creme">
         <div className="mx-auto flex max-w-md flex-col items-center text-center">
+          <SelecteurLangue sombre />
           <LogoPilou variante="blanc" hauteur={56} />
 
           <p className="mt-10 text-6xl animate-bounce">🍻</p>
 
           <h1 className="titre mt-4 text-4xl font-bold">
-            Lot remis !
-            <span className="block text-pilou-or">E Viva {reponse.prenom} !</span>
+            {t('resultat.lot_remis_titre')}
+            <span className="block text-pilou-or">{t('resultat.lot_remis_viva', { prenom: reponse.prenom })}</span>
           </h1>
 
           <p className="mt-6 titre text-lg font-bold">
-            Ce gain a été récupéré.
+            {t('resultat.lot_remis_texte')}
           </p>
           <p className="mt-2 text-sm opacity-80">
-            Cet écran ne peut plus être utilisé pour retirer un lot.
+            {t('resultat.lot_remis_texte2')}
           </p>
 
           <div className="mt-8 w-full rounded bg-black/25 px-4 py-3 text-sm">
-            <p className="titre font-bold opacity-90">{reponse.lot}</p>
+            <p className="titre font-bold opacity-90">{(i18n.language === 'en' && reponse.lot_en?.trim()) || reponse.lot}</p>
             <p className="opacity-80">{reponse.prenom} {reponse.nom}</p>
             <p className="opacity-80">{lieu?.nom} — {lieu?.ville}</p>
-            <p className="opacity-60 text-xs mt-1">code {reponse.code_retrait} · remis ✓</p>
+            <p className="opacity-60 text-xs mt-1">{t('resultat.code_remis', { code: reponse.code_retrait })}</p>
           </div>
 
           <img src={enfant} alt="" draggable="false" className="mt-6 w-48 opacity-95" />
 
           <Link to="/" className="mt-4 text-sm underline opacity-80 hover:opacity-100">
-            Retour à l'accueil
+            {t('resultat.retour_accueil')}
           </Link>
 
           <img src={logoBDC} alt="Brasserie du Comté"
@@ -75,7 +86,7 @@ export default function Resultat() {
             rel="noopener noreferrer"
             className="mt-4 text-base font-bold text-pilou-creme uppercase underline hover:opacity-80 text-center block"
           >
-            🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
+            🍺 <i>{t('commun.lien_site_titre')}</i> 🍺<br/>{t('commun.lien_site_cta')}
           </a>
         </div>
       </main>
@@ -85,13 +96,14 @@ export default function Resultat() {
   return (
     <main className="fond-rouge min-h-screen px-6 py-10 text-pilou-creme">
       <div className="mx-auto flex max-w-md flex-col items-center text-center">
+        <SelecteurLangue sombre />
         <LogoPilou variante="blanc" hauteur={56} />
 
         {gagne ? (
           <>
             <h1 className="titre mt-6 text-4xl font-bold">
-              Bravo {reponse.prenom} !
-              <span className="block text-pilou-or">Tu as gagné</span>
+              {t('resultat.gagne_titre', { prenom: reponse.prenom })}
+              <span className="block text-pilou-or">{t('resultat.gagne_sous_titre')}</span>
             </h1>
 
             <div className="my-6">
@@ -99,26 +111,23 @@ export default function Resultat() {
             </div>
 
             <p className="titre w-full rounded border-2 border-pilou-creme bg-pilou-creme/10 px-4 py-3 text-2xl font-bold">
-              {reponse.lot}
+              {(i18n.language === 'en' && reponse.lot_en?.trim()) || reponse.lot}
             </p>
 
             <p className="mt-6 titre text-lg font-bold leading-snug">
-              {texteAvecMiseEnAvant(
-                lieu?.message_retrait ??
-                  "Présente ce résultat au bar **aujourd'hui, avant la fermeture** pour remporter ton gain"
-              )}
+              {texteAvecMiseEnAvant(messageRetrait)}
             </p>
 
             <p className="mt-4 text-sm opacity-90">
-              Code de retrait :{' '}
+              {t('resultat.code_retrait')}{' '}
               <span className="titre text-xl font-bold tracking-widest text-pilou-or">
                 {reponse.code_retrait}
               </span>
             </p>
             <p className="mt-1 text-xs opacity-70">
               {/(visite|brasserie)/i.test(reponse.lot ?? '')
-                ? "Tu vas recevoir un email de confirmation. Une pièce d'identité pourra t'être demandée."
-                : "Une pièce d'identité pourra t'être demandée."}
+                ? t('resultat.piece_identite_visite')
+                : t('resultat.piece_identite')}
             </p>
 
             {/* Slider barman : marque le lot comme remis */}
@@ -127,8 +136,8 @@ export default function Resultat() {
         ) : (
           <>
             <h1 className="titre mt-6 text-4xl font-bold">
-              Perdu...
-              <span className="block text-pilou-or">ce sera pour la prochaine fois !</span>
+              {t('resultat.perdu_titre')}
+              <span className="block text-pilou-or">{t('resultat.perdu_sous_titre')}</span>
             </h1>
 
             <div className="my-6">
@@ -136,8 +145,7 @@ export default function Resultat() {
             </div>
 
             <p className="text-sm opacity-90">
-              La pièce n'est pas tombée du bon côté cette fois-ci.
-              Reviens tenter ta chance demain !
+              {t('resultat.perdu_texte')}
             </p>
           </>
         )}
@@ -154,7 +162,7 @@ export default function Resultat() {
         <img src={enfant} alt="" draggable="false" className="mt-6 w-48 opacity-95" />
 
         <Link to="/" className="mt-4 text-sm underline opacity-80 hover:opacity-100">
-          Retour à l'accueil
+          {t('resultat.retour_accueil')}
         </Link>
 
         <img src={logoBDC} alt="Brasserie du Comté"
@@ -167,7 +175,7 @@ export default function Resultat() {
           rel="noopener noreferrer"
           className="mt-4 text-base font-bold text-pilou-creme uppercase underline hover:opacity-80 text-center block"
         >
-          🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
+          🍺 <i>{t('commun.lien_site_titre')}</i> 🍺<br/>{t('commun.lien_site_cta')}
         </a>
       </div>
     </main>

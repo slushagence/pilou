@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
+    "i18next": "^26.3.6",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-i18next": "^17.0.10",
     "react-router-dom": "^7.16.0",
     "xlsx": "^0.18.5"
   },

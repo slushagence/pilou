@@ -56,8 +56,8 @@ export default function SliderRetrait({ codeRetrait, onRetire }) {
 
   return (
     <div className="mt-6 w-full">
-      <p className="text-xs opacity-80 mb-2 text-center">
-        ⚠️ Réservé au barman : glisser pour confirmer la remise du lot
+      <p className="text-xs opacity-80 mb-2 text-center font-bold uppercase tracking-wide">
+        🚫 Réservé au barman → Lot remis
       </p>
       <div
         ref={piste}

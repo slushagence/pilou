@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, Navigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../supabase'
 import LogoPilou from '../components/LogoPilou'
 import PiecePilou from '../components/PiecePilou'
+import SelecteurLangue from '../components/SelecteurLangue'
 import stade from '../assets/pilou/pilou-stade.png'
 import logoBDC from '../assets/pilou/logo-bdc_blanc.png'
 
 export default function Jeu() {
+  const { t, i18n } = useTranslation()
   const { state } = useLocation()
   const navigate = useNavigate()
   const [enRotation, setEnRotation] = useState(false)
@@ -34,23 +37,23 @@ export default function Jeu() {
     return (
       <main className="fond-rouge min-h-screen px-6 py-10 text-pilou-creme">
         <div className="mx-auto flex max-w-md flex-col items-center text-center">
+          <SelecteurLangue sombre />
           <LogoPilou variante="blanc" hauteur={56} />
 
           <p className="mt-10 text-5xl">😅</p>
           <h1 className="titre mt-4 text-3xl font-bold">
-            Oups, victime de son succès !
+            {t('jeu.epuise_titre')}
           </h1>
           <p className="mt-4 text-sm opacity-90 leading-relaxed">
-            Le jeu n'est pas disponible pour le moment dans cet établissement :
-            tous les lots ont été gagnés !<br />
-            Reviens bientôt, le stock sera réapprovisionné.
+            {t('jeu.epuise_texte')}<br />
+            {t('jeu.epuise_texte2')}
           </p>
 
           <p className="mt-6 text-sm opacity-80">{lieu.nom} — {lieu.ville}</p>
 
           <Link to="/" className="titre mt-8 block w-full rounded bg-pilou-creme py-4 text-xl
                      font-bold text-pilou-rouge shadow-lg transition hover:bg-white">
-            Retour à l'accueil
+            {t('jeu.retour_accueil')}
           </Link>
 
           <img src={logoBDC} alt="Brasserie du Comté"
@@ -59,7 +62,7 @@ export default function Jeu() {
 
           <a href="https://www.lapilou.fr" target="_blank" rel="noopener noreferrer"
             className="mt-4 text-base font-bold text-pilou-creme uppercase underline hover:opacity-80 text-center block">
-            🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
+            🍺 <i>{t('commun.lien_site_titre')}</i> 🍺<br/>{t('commun.lien_site_cta')}
           </a>
         </div>
       </main>
@@ -86,19 +89,19 @@ export default function Jeu() {
 
     if (error || !data) {
       setEnRotation(false)
-      setErreur("Le jeu n'a pas répondu. Vérifie ta connexion et réessaie.")
+      setErreur(t('jeu.erreurs.reseau'))
       return
     }
     if (!data.ok) {
       setEnRotation(false)
       if (data.erreur === 'deja_joue_aujourdhui') {
-        setErreur('Tu as déjà joué aujourd\u2019hui ! Reviens tenter ta chance demain.')
+        setErreur(t('jeu.erreurs.deja_joue'))
       } else if (data.erreur === 'trop_de_tentatives') {
-        setErreur('Limite atteinte pour aujourd\u2019hui ! Rappel de la règle : 1 adresse email par jour et 3 tentatives maximum par joueur. Reviens demain dans ton établissement pour rejouer !')
+        setErreur(t('jeu.erreurs.trop_de_tentatives'))
       } else if (data.erreur === 'etablissement_inconnu') {
-        setErreur('Ce lieu ne participe plus au jeu.')
+        setErreur(t('jeu.erreurs.etablissement_inconnu'))
       } else {
-        setErreur('Le formulaire semble incomplet. Reviens en arrière et vérifie tes infos.')
+        setErreur(t('jeu.erreurs.generique'))
       }
       return
     }
@@ -116,14 +119,17 @@ export default function Jeu() {
   return (
     <main className="fond-rouge min-h-screen px-6 py-10 text-pilou-creme">
       <div className="mx-auto flex max-w-md flex-col items-center text-center">
+        <SelecteurLangue sombre />
         <LogoPilou variante="blanc" hauteur={56} />
 
-        <h1 className="titre mt-6 text-4xl font-bold">À toi de jouer !</h1>
-        <p className="titre mt-1 text-lg text-pilou-or">Tente ta chance</p>
+        <h1 className="titre mt-6 text-4xl font-bold">{t('jeu.titre')}</h1>
+        <p className="titre mt-1 text-lg text-pilou-or">{t('jeu.sous_titre')}</p>
         <p className="mt-2 text-sm opacity-80">{lieu.nom} — {lieu.ville}</p>
         {lieu.taux_de_gain && (
           <p className="mt-1 text-xs opacity-60">
-            1 chance sur {Math.round(1 / lieu.taux_de_gain).toLocaleString('fr-FR')} de gagner
+            {t('jeu.chance', {
+              n: Math.round(1 / lieu.taux_de_gain).toLocaleString(i18n.language === 'en' ? 'en-US' : 'fr-FR'),
+            })}
           </p>
         )}
 
@@ -139,7 +145,7 @@ export default function Jeu() {
                      shadow-lg transition hover:bg-white disabled:cursor-wait disabled:opacity-70
                      focus:outline-2 focus:outline-offset-2 focus:outline-pilou-creme"
         >
-          {faceFinale ? '...' : enRotation ? 'La pièce tourne...' : 'Faire tourner la pièce'}
+          {faceFinale ? '...' : enRotation ? t('jeu.bouton_en_cours') : t('jeu.bouton_tourner')}
         </button>
 
         {erreur && (
@@ -147,7 +153,7 @@ export default function Jeu() {
         )}
 
         <Link to="/lots" state={{ lieu }} className="mt-6 text-sm underline opacity-80 hover:opacity-100">
-          Voir les lots disponibles
+          {t('jeu.voir_lots')}
         </Link>
 
         <img src={stade} alt="" draggable="false"
@@ -159,7 +165,7 @@ export default function Jeu() {
 
         <a href="https://www.lapilou.fr" target="_blank" rel="noopener noreferrer"
           className="mt-4 text-base font-bold text-pilou-creme uppercase underline hover:opacity-80 text-center block">
-          🍺 <i>Qu'es la Pilou ?</i> 🍺<br/>VISITEZ NOTRE SITE POUR EN SAVOIR PLUS !
+          🍺 <i>{t('commun.lien_site_titre')}</i> 🍺<br/>{t('commun.lien_site_cta')}
         </a>
       </div>
     </main>
