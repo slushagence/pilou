@@ -33,6 +33,11 @@ export default function Resultat() {
   if (!state?.reponse) return <Navigate to="/" replace />
   const { reponse, lieu } = state
   const gagne = reponse.resultat === 'gagne'
+  // Utilisé uniquement pour le texte "pièce d'identité" (mention de l'email
+  // de confirmation pour les visites). Le message de retrait et le slider
+  // barman s'appliquent à tous les gains : le barman remet une carte postale
+  // pour les visites, en attendant le RDV pris par email sous 15 jours.
+  const estVisite = /(visite|brasserie)/i.test(reponse.lot ?? '')
 
   // Message de retrait : version anglaise si dispo et langue EN, sinon
   // version française de l'établissement, sinon le texte générique traduit.
@@ -125,12 +130,12 @@ export default function Resultat() {
               </span>
             </p>
             <p className="mt-1 text-xs opacity-70">
-              {/(visite|brasserie)/i.test(reponse.lot ?? '')
-                ? t('resultat.piece_identite_visite')
-                : t('resultat.piece_identite')}
+              {estVisite ? t('resultat.piece_identite_visite') : t('resultat.piece_identite')}
             </p>
 
-            {/* Slider barman : marque le lot comme remis */}
+            {/* Slider barman : marque le lot comme remis (y compris pour les
+                visites — le barman remet une carte postale en attendant le
+                RDV pris par email). */}
             <SliderRetrait codeRetrait={reponse.code_retrait} onRetire={() => setRetire(true)} />
           </>
         ) : (

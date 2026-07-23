@@ -72,7 +72,11 @@
     "lot_remis_texte": "This prize has already been collected.",
     "lot_remis_texte2": "This screen can no longer be used to collect a prize.",
     "code_remis": "code {{code}} · collected \u2713",
-    "message_defaut": "Show this screen at the bar **today, before closing** to claim your prize"
+    "message_defaut": "Show this screen at the bar **today, before closing** to claim your prize",
+    "slider_legende": "\u26a0\ufe0f Bartender only: slide to confirm the prize has been handed over",
+    "slider_repos": "\ud83d\udeab Bartender only \u2192 Prize collected",
+    "slider_envoi": "Confirming...",
+    "slider_erreur": "Error, try again"
   },
   "lots": {
     "titre": "Prizes to be won",

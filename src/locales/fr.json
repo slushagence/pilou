@@ -72,7 +72,11 @@
     "lot_remis_texte": "Ce gain a été récupéré.",
     "lot_remis_texte2": "Cet écran ne peut plus être utilisé pour retirer un lot.",
     "code_remis": "code {{code}} · remis ✓",
-    "message_defaut": "Présente ce résultat au bar **aujourd'hui, avant la fermeture** pour remporter ton gain"
+    "message_defaut": "Présente ce résultat au bar **aujourd'hui, avant la fermeture** pour remporter ton gain",
+    "slider_legende": "⚠️ Réservé au barman : glisser pour confirmer la remise du lot",
+    "slider_repos": "🚫 Réservé au barman → Lot remis",
+    "slider_envoi": "Validation...",
+    "slider_erreur": "Erreur, réessaie"
   },
   "lots": {
     "titre": "Les lots à gagner",

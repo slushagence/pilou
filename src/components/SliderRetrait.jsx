@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../supabase'
 
 /*
@@ -8,6 +9,7 @@ import { supabase } from '../supabase'
  * Glissé au bout → RPC marquer_retire → écran "lot remis".
  */
 export default function SliderRetrait({ codeRetrait, onRetire }) {
+  const { t } = useTranslation()
   const [valeur, setValeur] = useState(0)
   const [etat, setEtat] = useState('repos') // repos | envoi | erreur
   const piste = useRef(null)
@@ -56,8 +58,8 @@ export default function SliderRetrait({ codeRetrait, onRetire }) {
 
   return (
     <div className="mt-6 w-full">
-      <p className="text-xs opacity-80 mb-2 text-center font-bold uppercase tracking-wide">
-        🚫 Réservé au barman → Lot remis
+      <p className="text-xs opacity-80 mb-2 text-center">
+        {t('resultat.slider_legende')}
       </p>
       <div
         ref={piste}
@@ -80,7 +82,7 @@ export default function SliderRetrait({ codeRetrait, onRetire }) {
         {/* Texte */}
         <span className="absolute inset-0 flex items-center justify-center titre text-sm font-bold
                          tracking-wide uppercase pointer-events-none text-pilou-rouge pl-10">
-          {etat === 'envoi' ? 'Validation...' : etat === 'erreur' ? 'Erreur, réessaie' : 'Glisser → lot remis'}
+          {etat === 'envoi' ? t('resultat.slider_envoi') : etat === 'erreur' ? t('resultat.slider_erreur') : t('resultat.slider_repos')}
         </span>
         {/* Poignée */}
         <div
