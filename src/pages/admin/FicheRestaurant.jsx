@@ -487,11 +487,14 @@ export default function FicheRestaurant() {
           </p>
         )}
 
-        {messageErreur && (
-          <p className="mt-4 rounded bg-pilou-rouge px-4 py-2 text-sm text-pilou-creme">{messageErreur}</p>
-        )}
-        {messageSucces && (
-          <p className="mt-4 rounded bg-green-600 px-4 py-2 text-sm text-white">{messageSucces}</p>
+        {(messageErreur || messageSucces) && (
+          <div className="fixed inset-x-4 bottom-4 z-50 flex justify-center sm:inset-x-0">
+            <p className={`rounded px-4 py-3 text-sm shadow-lg ${
+              messageErreur ? 'bg-pilou-rouge text-pilou-creme' : 'bg-green-600 text-white'
+            }`}>
+              {messageErreur || messageSucces}
+            </p>
+          </div>
         )}
 
         {/* ── Stats du jour ── */}
